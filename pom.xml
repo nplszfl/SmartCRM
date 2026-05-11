@@ -23,10 +23,7 @@
         <module>common</module>
         <module>gateway</module>
         <module>crm-service</module>
-        <module>lead-service</module>
-        <module>opportunity-service</module>
-        <module>email-service</module>
-        <module>analytics-service</module>
+        <module>ai-service</module>
     </modules>
 
     <properties>
@@ -35,13 +32,13 @@
         <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <spring-cloud-alibaba.version>2023.0.1.2</spring-cloud-alibaba.version>
-        <spring-cloud.version>2023.0.1.1</spring-cloud.version>
-        <spring-ai.version>1.0.0-M6</spring-ai.version>
+        <spring-cloud.version>2023.0.1</spring-cloud.version>
+        <spring-ai.version>1.0.0-M5</spring-ai.version>
         <mybatis-plus.version>3.5.6</mybatis-plus.version>
         <hutool.version>5.8.26</hutool.version>
         <fastjson2.version>2.0.47</fastjson2.version>
         <jwt.version>0.12.5</jwt.version>
-        < Lombok.version>1.18.32</Lombok.version>
+        <lombok.version>1.18.32</lombok.version>
     </properties>
 
     <dependencyManagement>
@@ -108,7 +105,7 @@
             <dependency>
                 <groupId>org.projectlombok</groupId>
                 <artifactId>lombok</artifactId>
-                <version>${Lombok.version}</version>
+                <version>${lombok.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -192,12 +189,6 @@
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <scope>provided</scope>
-        </dependency>
-
-        <!-- SmartCRM Common -->
-        <dependency>
-            <groupId>com.smartcrm</groupId>
-            <artifactId>smartcrm-common</artifactId>
         </dependency>
     </dependencies>
 

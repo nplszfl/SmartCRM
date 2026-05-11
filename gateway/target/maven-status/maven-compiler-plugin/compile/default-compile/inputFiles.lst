@@ -1,0 +1,6 @@
+/Users/huanghuixiang/smartcrm/gateway/src/main/java/com/smartcrm/gateway/config/RedisConfig.java
+/Users/huanghuixiang/smartcrm/gateway/src/main/java/com/smartcrm/gateway/filter/RequestIdFilter.java
+/Users/huanghuixiang/smartcrm/gateway/src/main/java/com/smartcrm/gateway/config/SecurityConfig.java
+/Users/huanghuixiang/smartcrm/gateway/src/main/java/com/smartcrm/gateway/GatewayApplication.java
+/Users/huanghuixiang/smartcrm/gateway/src/main/java/com/smartcrm/gateway/config/JwtAuthProperties.java
+/Users/huanghuixiang/smartcrm/gateway/src/main/java/com/smartcrm/gateway/filter/JwtAuthenticationFilter.java

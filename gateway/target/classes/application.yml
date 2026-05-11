@@ -1,0 +1,101 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: smartcrm-gateway
+
+  cloud:
+    nacos:
+      discovery:
+        server-addr: ${NACOS_SERVER:localhost:8848}
+        namespace: ${NACOS_NAMESPACE:public}
+        group: SMARTCRM_GROUP
+    nacos:
+      config:
+        server-addr: ${NACOS_SERVER:localhost:8848}
+        namespace: ${NACOS_NAMESPACE:public}
+        file-extension: yaml
+        shared-configs:
+          - data-id: common-config.yaml
+            group: SMARTCRM_GROUP
+            refresh: true
+
+    gateway:
+      discovery:
+        locator:
+          enabled: true
+          lower-case-service-id: true
+      routes:
+        - id: crm-service
+          uri: lb://smartcrm-crm-service
+          predicates:
+            - Path=/api/crm/**
+          filters:
+            - StripPrefix=1
+
+        - id: lead-service
+          uri: lb://smartcrm-lead-service
+          predicates:
+            - Path=/api/leads/**
+          filters:
+            - StripPrefix=1
+
+        - id: opportunity-service
+          uri: lb://smartcrm-opportunity-service
+          predicates:
+            - Path=/api/opportunities/**
+          filters:
+            - StripPrefix=1
+
+        - id: email-service
+          uri: lb://smartcrm-email-service
+          predicates:
+            - Path=/api/emails/**
+          filters:
+            - StripPrefix=1
+
+        - id: analytics-service
+          uri: lb://smartcrm-analytics-service
+          predicates:
+            - Path=/api/analytics/**
+          filters:
+            - StripPrefix=1
+
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOrigins: "*"
+            allowedMethods: "*"
+            allowedHeaders: "*"
+
+  redis:
+    host: ${REDIS_HOST:localhost}
+    port: ${REDIS_PORT:6379}
+    password: ${REDIS_PASSWORD:}
+    database: 0
+    timeout: 3000ms
+    lettuce:
+      pool:
+        max-active: 8
+        max-idle: 8
+        min-idle: 0
+
+jwt:
+  secret: ${JWT_SECRET:smartcrm-jwt-secret-key-must-be-at-least-256-bits-long-for-hs256}
+  expiration: 86400000
+  header: Authorization
+  prefix: "Bearer "
+
+sentinel:
+  enabled: true
+  portal: ${SENTINEL_PORTAL:localhost:8858}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,gateway
+  endpoint:
+    health:
+      show-details: always

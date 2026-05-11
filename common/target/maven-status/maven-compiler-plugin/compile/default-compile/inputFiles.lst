@@ -1,0 +1,17 @@
+/Users/huanghuixiang/smartcrm/common/src/main/java/com/smartcrm/common/exception/GlobalExceptionHandler.java
+/Users/huanghuixiang/smartcrm/common/src/main/java/com/smartcrm/common/entity/BaseEntity.java
+/Users/huanghuixiang/smartcrm/common/src/main/java/com/smartcrm/common/config/MybatisPlusConfig.java
+/Users/huanghuixiang/smartcrm/common/src/main/java/com/smartcrm/common/entity/LeadScoreLevel.java
+/Users/huanghuixiang/smartcrm/common/src/main/java/com/smartcrm/common/dto/AIInsightResult.java
+/Users/huanghuixiang/smartcrm/common/src/main/java/com/smartcrm/common/dto/AIScoreResult.java
+/Users/huanghuixiang/smartcrm/common/src/main/java/com/smartcrm/common/dto/PageResponse.java
+/Users/huanghuixiang/smartcrm/common/src/main/java/com/smartcrm/common/exception/BusinessException.java
+/Users/huanghuixiang/smartcrm/common/src/main/java/com/smartcrm/common/dto/AIPredictionResult.java
+/Users/huanghuixiang/smartcrm/common/src/main/java/com/smartcrm/common/entity/DealConfidence.java
+/Users/huanghuixiang/smartcrm/common/src/main/java/com/smartcrm/common/entity/UserEntity.java
+/Users/huanghuixiang/smartcrm/common/src/main/java/com/smartcrm/common/entity/OpportunityStage.java
+/Users/huanghuixiang/smartcrm/common/src/main/java/com/smartcrm/common/dto/PageRequest.java
+/Users/huanghuixiang/smartcrm/common/src/main/java/com/smartcrm/common/exception/ResourceNotFoundException.java
+/Users/huanghuixiang/smartcrm/common/src/main/java/com/smartcrm/common/ai/AIClient.java
+/Users/huanghuixiang/smartcrm/common/src/main/java/com/smartcrm/common/dto/ApiResponse.java
+/Users/huanghuixiang/smartcrm/common/src/main/java/com/smartcrm/common/exception/UnauthorizedException.java

@@ -1,0 +1,47 @@
+{
+  "groups": [
+    {
+      "name": "ai.service",
+      "type": "com.smartcrm.ai.config.AiServiceProperties",
+      "sourceType": "com.smartcrm.ai.config.AiServiceProperties"
+    }
+  ],
+  "properties": [
+    {
+      "name": "ai.service.api-key",
+      "type": "java.lang.String",
+      "sourceType": "com.smartcrm.ai.config.AiServiceProperties"
+    },
+    {
+      "name": "ai.service.base-url",
+      "type": "java.lang.String",
+      "sourceType": "com.smartcrm.ai.config.AiServiceProperties",
+      "defaultValue": "https:\/\/api.deepseek.com"
+    },
+    {
+      "name": "ai.service.max-retries",
+      "type": "java.lang.Integer",
+      "sourceType": "com.smartcrm.ai.config.AiServiceProperties",
+      "defaultValue": 3
+    },
+    {
+      "name": "ai.service.model",
+      "type": "java.lang.String",
+      "sourceType": "com.smartcrm.ai.config.AiServiceProperties",
+      "defaultValue": "deepseek-chat"
+    },
+    {
+      "name": "ai.service.provider",
+      "type": "java.lang.String",
+      "sourceType": "com.smartcrm.ai.config.AiServiceProperties",
+      "defaultValue": "deepseek"
+    },
+    {
+      "name": "ai.service.timeout-seconds",
+      "type": "java.lang.Integer",
+      "sourceType": "com.smartcrm.ai.config.AiServiceProperties",
+      "defaultValue": 60
+    }
+  ],
+  "hints": []
+}

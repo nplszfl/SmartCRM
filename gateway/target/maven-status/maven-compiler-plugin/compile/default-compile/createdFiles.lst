@@ -1,0 +1,7 @@
+com/smartcrm/gateway/config/SecurityConfig$JwtAuthorityConverter.class
+com/smartcrm/gateway/filter/RequestIdFilter.class
+com/smartcrm/gateway/filter/JwtAuthenticationFilter.class
+com/smartcrm/gateway/GatewayApplication.class
+com/smartcrm/gateway/config/JwtAuthProperties.class
+com/smartcrm/gateway/config/RedisConfig.class
+com/smartcrm/gateway/config/SecurityConfig.class

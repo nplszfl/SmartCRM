@@ -4,6 +4,7 @@ import com.smartcrm.common.entity.UserEntity;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 /**

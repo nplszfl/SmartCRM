@@ -1,0 +1,17 @@
+com/smartcrm/crm/service/ContactServiceImpl.class
+com/smartcrm/crm/service/ActivityServiceImpl.class
+com/smartcrm/crm/controller/CustomerController.class
+com/smartcrm/crm/repository/CustomerRepository.class
+com/smartcrm/crm/service/CustomerServiceImpl.class
+com/smartcrm/crm/repository/ActivityRepository.class
+com/smartcrm/crm/controller/ContactController.class
+com/smartcrm/crm/controller/ActivityController.class
+com/smartcrm/crm/entity/Customer.class
+com/smartcrm/crm/service/AccountServiceImpl.class
+com/smartcrm/crm/controller/AccountController.class
+com/smartcrm/crm/entity/Contact.class
+com/smartcrm/crm/entity/Activity.class
+com/smartcrm/crm/CrmServiceApplication.class
+com/smartcrm/crm/repository/ContactRepository.class
+com/smartcrm/crm/repository/AccountRepository.class
+com/smartcrm/crm/entity/Account.class
