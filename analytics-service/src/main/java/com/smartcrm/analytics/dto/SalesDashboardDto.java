@@ -30,26 +30,26 @@ public class SalesDashboardDto {
     private List<LeadSourceAnalysis> leadSourceAnalysis;
     private Map<String, Long> leadsByStatus;
     private Map<String, Long> opportunitiesByStage;
-}
 
-/**
- * Opportunity stage distribution
- */
-@Data
-class StageDistribution {
-    private String stage;
-    private long count;
-    private BigDecimal totalAmount;
-    private BigDecimal percentage;
-}
+    /**
+     * Opportunity stage distribution
+     */
+    @Data
+    public static class StageDistribution {
+        private String stage;
+        private long count;
+        private BigDecimal totalAmount;
+        private BigDecimal percentage;
+    }
 
-/**
- * Lead source analysis
- */
-@Data
-class LeadSourceAnalysis {
-    private String source;
-    private long leadCount;
-    private long conversionCount;
-    private BigDecimal conversionRate;
+    /**
+     * Lead source analysis
+     */
+    @Data
+    public static class LeadSourceAnalysis {
+        private String source;
+        private long leadCount;
+        private long conversionCount;
+        private BigDecimal conversionRate;
+    }
 }

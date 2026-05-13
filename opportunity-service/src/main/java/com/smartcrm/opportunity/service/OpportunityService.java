@@ -35,7 +35,7 @@ public class OpportunityService extends ServiceImpl<OpportunityRepository, Oppor
         opp.setProbability(request.getProbability() != null ? request.getProbability() : calculateDefaultProbability(request.getStage()));
         opp.setOwnerId(request.getOwnerId());
         if (request.getExpectedCloseDate() != null) {
-            opp.setExpectedCloseDate(LocalDate.parse(request.getExpectedCloseDate()));
+            opp.setExpectedCloseDate(LocalDateTime.parse(request.getExpectedCloseDate() + "T00:00:00"));
         }
         opp.setType(request.getType() != null ? request.getType() : "NEW_BUSINESS");
         opp.setSource(request.getSource());
@@ -66,7 +66,7 @@ public class OpportunityService extends ServiceImpl<OpportunityRepository, Oppor
         existing.setAmount(request.getAmount());
         existing.setOwnerId(request.getOwnerId());
         if (request.getExpectedCloseDate() != null) {
-            existing.setExpectedCloseDate(LocalDate.parse(request.getExpectedCloseDate()));
+            existing.setExpectedCloseDate(LocalDateTime.parse(request.getExpectedCloseDate() + "T00:00:00"));
         }
         existing.setType(request.getType());
         existing.setUpdatedAt(LocalDateTime.now());
@@ -118,7 +118,7 @@ public class OpportunityService extends ServiceImpl<OpportunityRepository, Oppor
             throw new ResourceNotFoundException("Opportunity", id);
         }
         opp.setStage("CLOSED_WON");
-        opp.setProbability(100.0);
+        opp.setProbability(BigDecimal.valueOf(100.0));
         opp.setActualCloseDate(LocalDateTime.now());
         opp.setUpdatedAt(LocalDateTime.now());
         this.updateById(opp);
@@ -132,7 +132,7 @@ public class OpportunityService extends ServiceImpl<OpportunityRepository, Oppor
             throw new ResourceNotFoundException("Opportunity", id);
         }
         opp.setStage("CLOSED_LOST");
-        opp.setProbability(0.0);
+        opp.setProbability(BigDecimal.ZERO);
         opp.setActualCloseDate(LocalDateTime.now());
         opp.setUpdatedAt(LocalDateTime.now());
         this.updateById(opp);
@@ -168,7 +168,7 @@ public class OpportunityService extends ServiceImpl<OpportunityRepository, Oppor
         List<Opportunity> openOpps = this.list(new LambdaQueryWrapper<Opportunity>()
                 .notIn(Opportunity::getStage, "CLOSED_WON", "CLOSED_LOST"));
         return openOpps.stream()
-                .map(opp -> opp.getAmount().multiply(BigDecimal.valueOf(opp.getProbability() / 100.0)))
+                .map(opp -> opp.getAmount().multiply(opp.getProbability().divide(BigDecimal.valueOf(100), 4, java.math.RoundingMode.HALF_UP)))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
