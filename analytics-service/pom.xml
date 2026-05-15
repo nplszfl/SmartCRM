@@ -15,7 +15,7 @@
     <dependencies>
         <dependency>
             <groupId>com.smartcrm</groupId>
-            <artifactId>common</artifactId>
+            <artifactId>smartcrm-common</artifactId>
             <version>${project.version}</version>
         </dependency>
 
