@@ -1,0 +1,6 @@
+/Users/huanghuixiang/smartcrm/lead-service/src/main/java/com/smartcrm/lead/entity/Lead.java
+/Users/huanghuixiang/smartcrm/lead-service/src/main/java/com/smartcrm/lead/dto/LeadRequest.java
+/Users/huanghuixiang/smartcrm/lead-service/src/main/java/com/smartcrm/lead/LeadServiceApplication.java
+/Users/huanghuixiang/smartcrm/lead-service/src/main/java/com/smartcrm/lead/controller/LeadController.java
+/Users/huanghuixiang/smartcrm/lead-service/src/main/java/com/smartcrm/lead/repository/LeadRepository.java
+/Users/huanghuixiang/smartcrm/lead-service/src/main/java/com/smartcrm/lead/service/LeadService.java

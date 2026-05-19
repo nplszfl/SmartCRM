@@ -1,0 +1,6 @@
+com/smartcrm/lead/LeadServiceApplication.class
+com/smartcrm/lead/controller/LeadController.class
+com/smartcrm/lead/service/LeadService.class
+com/smartcrm/lead/entity/Lead.class
+com/smartcrm/lead/dto/LeadRequest.class
+com/smartcrm/lead/repository/LeadRepository.class

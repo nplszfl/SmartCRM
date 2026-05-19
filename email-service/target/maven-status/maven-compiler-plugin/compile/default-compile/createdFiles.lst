@@ -1,0 +1,6 @@
+com/smartcrm/email/repository/EmailRepository.class
+com/smartcrm/email/controller/EmailController.class
+com/smartcrm/email/EmailServiceApplication.class
+com/smartcrm/email/entity/Email.class
+com/smartcrm/email/dto/EmailRequest.class
+com/smartcrm/email/service/EmailService.class

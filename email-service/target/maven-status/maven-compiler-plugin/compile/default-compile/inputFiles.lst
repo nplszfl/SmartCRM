@@ -1,0 +1,6 @@
+/Users/huanghuixiang/smartcrm/email-service/src/main/java/com/smartcrm/email/repository/EmailRepository.java
+/Users/huanghuixiang/smartcrm/email-service/src/main/java/com/smartcrm/email/service/EmailService.java
+/Users/huanghuixiang/smartcrm/email-service/src/main/java/com/smartcrm/email/EmailServiceApplication.java
+/Users/huanghuixiang/smartcrm/email-service/src/main/java/com/smartcrm/email/controller/EmailController.java
+/Users/huanghuixiang/smartcrm/email-service/src/main/java/com/smartcrm/email/entity/Email.java
+/Users/huanghuixiang/smartcrm/email-service/src/main/java/com/smartcrm/email/dto/EmailRequest.java

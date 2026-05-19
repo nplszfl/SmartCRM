@@ -7,6 +7,7 @@
 /Users/huanghuixiang/smartcrm/ai-service/src/main/java/com/smartcrm/ai/config/AiServiceProperties.java
 /Users/huanghuixiang/smartcrm/ai-service/src/main/java/com/smartcrm/ai/dto/response/RepMatchResponse.java
 /Users/huanghuixiang/smartcrm/ai-service/src/main/java/com/smartcrm/ai/exception/AiServiceException.java
+/Users/huanghuixiang/smartcrm/ai-service/src/main/java/com/smartcrm/ai/service/RepMatchService.java
 /Users/huanghuixiang/smartcrm/ai-service/src/main/java/com/smartcrm/ai/service/LlmClientService.java
 /Users/huanghuixiang/smartcrm/ai-service/src/main/java/com/smartcrm/ai/dto/request/RepMatchRequest.java
 /Users/huanghuixiang/smartcrm/ai-service/src/main/java/com/smartcrm/ai/exception/GlobalExceptionHandler.java
@@ -16,5 +17,8 @@
 /Users/huanghuixiang/smartcrm/ai-service/src/main/java/com/smartcrm/ai/service/LeadScoringService.java
 /Users/huanghuixiang/smartcrm/ai-service/src/main/java/com/smartcrm/ai/dto/request/LeadScoreRequest.java
 /Users/huanghuixiang/smartcrm/ai-service/src/main/java/com/smartcrm/ai/dto/response/ConversationAnalyzeResponse.java
+/Users/huanghuixiang/smartcrm/ai-service/src/main/java/com/smartcrm/ai/service/ConversationAnalysisService.java
+/Users/huanghuixiang/smartcrm/ai-service/src/main/java/com/smartcrm/ai/service/DealPredictionService.java
 /Users/huanghuixiang/smartcrm/ai-service/src/main/java/com/smartcrm/ai/dto/response/EmailGenerateResponse.java
+/Users/huanghuixiang/smartcrm/ai-service/src/main/java/com/smartcrm/ai/controller/AiController.java
 /Users/huanghuixiang/smartcrm/ai-service/src/main/java/com/smartcrm/ai/dto/response/DealPredictResponse.java

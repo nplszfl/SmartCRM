@@ -1,0 +1,6 @@
+com/smartcrm/opportunity/entity/Opportunity.class
+com/smartcrm/opportunity/service/OpportunityService.class
+com/smartcrm/opportunity/OpportunityServiceApplication.class
+com/smartcrm/opportunity/dto/OpportunityRequest.class
+com/smartcrm/opportunity/controller/OpportunityController.class
+com/smartcrm/opportunity/repository/OpportunityRepository.class

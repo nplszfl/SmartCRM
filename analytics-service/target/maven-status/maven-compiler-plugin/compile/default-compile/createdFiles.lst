@@ -1,0 +1,10 @@
+com/smartcrm/analytics/AnalyticsServiceApplication.class
+com/smartcrm/analytics/dto/SalesDashboardDto.class
+com/smartcrm/analytics/dto/PerformanceReportDto.class
+com/smartcrm/analytics/service/AnalyticsService.class
+com/smartcrm/analytics/client/LeadFeignClient.class
+com/smartcrm/analytics/client/EmailFeignClient.class
+com/smartcrm/analytics/dto/SalesDashboardDto$StageDistribution.class
+com/smartcrm/analytics/controller/AnalyticsController.class
+com/smartcrm/analytics/client/OpportunityFeignClient.class
+com/smartcrm/analytics/dto/SalesDashboardDto$LeadSourceAnalysis.class

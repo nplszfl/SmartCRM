@@ -1,0 +1,6 @@
+/Users/huanghuixiang/smartcrm/opportunity-service/src/main/java/com/smartcrm/opportunity/service/OpportunityService.java
+/Users/huanghuixiang/smartcrm/opportunity-service/src/main/java/com/smartcrm/opportunity/repository/OpportunityRepository.java
+/Users/huanghuixiang/smartcrm/opportunity-service/src/main/java/com/smartcrm/opportunity/dto/OpportunityRequest.java
+/Users/huanghuixiang/smartcrm/opportunity-service/src/main/java/com/smartcrm/opportunity/controller/OpportunityController.java
+/Users/huanghuixiang/smartcrm/opportunity-service/src/main/java/com/smartcrm/opportunity/OpportunityServiceApplication.java
+/Users/huanghuixiang/smartcrm/opportunity-service/src/main/java/com/smartcrm/opportunity/entity/Opportunity.java

@@ -1,6 +1,7 @@
 com/smartcrm/ai/dto/response/RepMatchResponse$AlternativeRep.class
 com/smartcrm/ai/service/LeadScoringService.class
 com/smartcrm/ai/service/EmailGenerationService$EmailPersonalizationData.class
+com/smartcrm/ai/service/DealPredictionService.class
 com/smartcrm/ai/dto/request/LeadScoreRequest.class
 com/smartcrm/ai/dto/response/LeadScoreResponse$LeadScoreResponseBuilder.class
 com/smartcrm/ai/dto/request/EmailGenerateRequest$EmailGenerateRequestBuilder.class
@@ -13,6 +14,7 @@ com/smartcrm/ai/dto/request/DealPredictRequest$DealEngagementData$DealEngagement
 com/smartcrm/ai/dto/request/LeadScoreRequest$LeadFirmographicData.class
 com/smartcrm/ai/dto/request/DealPredictRequest.class
 com/smartcrm/ai/dto/request/DealPredictRequest$HistoricalDeal$HistoricalDealBuilder.class
+com/smartcrm/ai/service/RepMatchService.class
 com/smartcrm/ai/exception/GlobalExceptionHandler$ErrorResponse$ErrorResponseBuilder.class
 com/smartcrm/ai/dto/request/EmailGenerateRequest$EmailPersonalizationData.class
 com/smartcrm/ai/dto/request/LeadScoreRequest$LeadScoreRequestBuilder.class
@@ -30,6 +32,7 @@ com/smartcrm/ai/dto/response/HealthResponse$CacheStatus$CacheStatusBuilder.class
 com/smartcrm/ai/dto/request/RepMatchRequest$RepMatchRequestBuilder.class
 com/smartcrm/ai/dto/request/DealPredictRequest$HistoricalDeal.class
 com/smartcrm/ai/dto/request/EmailGenerateRequest.class
+com/smartcrm/ai/service/ConversationAnalysisService.class
 com/smartcrm/ai/dto/response/RepMatchResponse.class
 com/smartcrm/ai/service/LlmClientService.class
 com/smartcrm/ai/config/AppConfig.class
@@ -45,6 +48,7 @@ com/smartcrm/ai/dto/request/ConversationAnalyzeRequest$ConversationAnalyzeReques
 com/smartcrm/ai/dto/response/RepMatchResponse$RepMatchResponseBuilder.class
 com/smartcrm/ai/dto/request/LeadScoreRequest$LeadBehavioralData.class
 com/smartcrm/ai/dto/request/DealPredictRequest$DealPredictRequestBuilder.class
+com/smartcrm/ai/controller/AiController.class
 com/smartcrm/ai/dto/response/DealPredictResponse.class
 com/smartcrm/ai/dto/response/LeadScoreResponse.class
 com/smartcrm/ai/dto/response/ConversationAnalyzeResponse.class

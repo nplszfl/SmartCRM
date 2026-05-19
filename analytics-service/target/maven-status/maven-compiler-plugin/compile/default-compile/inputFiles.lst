@@ -1,0 +1,8 @@
+/Users/huanghuixiang/smartcrm/analytics-service/src/main/java/com/smartcrm/analytics/service/AnalyticsService.java
+/Users/huanghuixiang/smartcrm/analytics-service/src/main/java/com/smartcrm/analytics/client/OpportunityFeignClient.java
+/Users/huanghuixiang/smartcrm/analytics-service/src/main/java/com/smartcrm/analytics/dto/SalesDashboardDto.java
+/Users/huanghuixiang/smartcrm/analytics-service/src/main/java/com/smartcrm/analytics/client/LeadFeignClient.java
+/Users/huanghuixiang/smartcrm/analytics-service/src/main/java/com/smartcrm/analytics/dto/PerformanceReportDto.java
+/Users/huanghuixiang/smartcrm/analytics-service/src/main/java/com/smartcrm/analytics/controller/AnalyticsController.java
+/Users/huanghuixiang/smartcrm/analytics-service/src/main/java/com/smartcrm/analytics/AnalyticsServiceApplication.java
+/Users/huanghuixiang/smartcrm/analytics-service/src/main/java/com/smartcrm/analytics/client/EmailFeignClient.java

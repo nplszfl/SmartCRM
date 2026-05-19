@@ -1,0 +1,32 @@
+-------------------------------------------------------------------------------
+Test set: com.smartcrm.crm.service.CustomerServiceImplTest
+-------------------------------------------------------------------------------
+Tests run: 8, Failures: 2, Errors: 1, Skipped: 0, Time elapsed: 0.025 s <<< FAILURE! -- in com.smartcrm.crm.service.CustomerServiceImplTest
+com.smartcrm.crm.service.CustomerServiceImplTest.getAllCustomers_returnsAllCustomers -- Time elapsed: 0.002 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expected size: 2 but was: 0 in:
+[]
+	at com.smartcrm.crm.service.CustomerServiceImplTest.getAllCustomers_returnsAllCustomers(CustomerServiceImplTest.java:191)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+com.smartcrm.crm.service.CustomerServiceImplTest.deleteCustomer_callsRemoveById -- Time elapsed: 0.001 s <<< ERROR!
+java.lang.NullPointerException: Cannot invoke "com.baomidou.mybatisplus.core.metadata.TableInfo.isWithLogicDelete()" because "tableInfo" is null
+	at com.baomidou.mybatisplus.extension.service.impl.ServiceImpl.removeById(ServiceImpl.java:302)
+	at com.smartcrm.crm.service.CustomerServiceImpl.deleteCustomer(CustomerServiceImpl.java:58)
+	at com.smartcrm.crm.service.CustomerServiceImplTest.deleteCustomer_callsRemoveById(CustomerServiceImplTest.java:168)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+com.smartcrm.crm.service.CustomerServiceImplTest.getCustomerById_whenNotExists_throwsResourceNotFoundException -- Time elapsed: 0.001 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expecting code to raise a throwable.
+	at com.smartcrm.crm.service.CustomerServiceImplTest.getCustomerById_whenNotExists_throwsResourceNotFoundException(CustomerServiceImplTest.java:93)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
