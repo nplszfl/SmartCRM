@@ -136,6 +136,7 @@ public class LeadService extends ServiceImpl<LeadRepository, Lead> {
         lead.setStatus("CONVERTED");
         lead.setConvertedAccountId(accountId);
         lead.setConvertedContactId(contactId);
+        lead.setConvertedAt(LocalDateTime.now());
         lead.setUpdatedAt(LocalDateTime.now());
         this.updateById(lead);
         log.info("Lead {} converted to Account {} and Contact {}", id, accountId, contactId);

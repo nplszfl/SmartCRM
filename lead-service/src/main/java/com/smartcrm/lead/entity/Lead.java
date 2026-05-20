@@ -29,6 +29,7 @@ public class Lead {
     private Long ownerId; // Sales rep assigned to this lead
     private Long convertedAccountId; // If converted to Account
     private Long convertedContactId; // If converted to Contact
+    private LocalDateTime convertedAt; // Timestamp when lead was converted
 
     private LocalDateTime lastContactDate;
     private LocalDateTime nextFollowUpDate;

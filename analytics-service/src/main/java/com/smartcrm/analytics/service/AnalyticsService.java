@@ -11,7 +11,9 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 /**
@@ -173,20 +175,89 @@ public class AnalyticsService {
     }
 
     /**
-     * Get average time from lead creation to conversion
+     * Get average time from lead creation to conversion in days.
+     * Calculated from actual converted leads' createdAt and convertedAt timestamps.
      */
     public double getAverageTimeToConversion() {
         log.info("Calculating average time to conversion");
-        // Would calculate from lead created_at to converted_at timestamps
-        return 14.5; // days - estimated based on typical sales cycle
+        try {
+            var response = leadClient.getAllLeads();
+            if (response != null && response.getData() != null) {
+                List<Map<String, Object>> leads = response.getData();
+                List<Long> conversionTimes = new ArrayList<>();
+
+                for (Map<String, Object> lead : leads) {
+                    String status = String.valueOf(lead.getOrDefault("status", ""));
+                    if ("CONVERTED".equals(status)) {
+                        Object createdAtObj = lead.get("createdAt");
+                        Object convertedAtObj = lead.get("convertedAt");
+
+                        if (createdAtObj != null && convertedAtObj != null) {
+                            LocalDateTime created = parseDateTime(createdAtObj);
+                            LocalDateTime converted = parseDateTime(convertedAtObj);
+                            if (created != null && converted != null) {
+                                long days = java.time.temporal.ChronoUnit.DAYS.between(created, converted);
+                                conversionTimes.add(days);
+                            }
+                        }
+                    }
+                }
+
+                if (!conversionTimes.isEmpty()) {
+                    double avg = conversionTimes.stream()
+                            .mapToLong(Long::longValue)
+                            .average()
+                            .orElse(0.0);
+                    return Math.round(avg * 10) / 10.0;
+                }
+            }
+        } catch (Exception e) {
+            log.warn("Failed to calculate average time to conversion: {}", e.getMessage());
+        }
+        return 0.0;
     }
 
     /**
-     * Get average sales cycle duration
+     * Get average sales cycle duration in days.
+     * Calculated from won opportunities' createdAt to closedAt timestamps.
      */
     public double getAverageSalesCycleDuration() {
         log.info("Calculating average sales cycle duration");
-        return 45.0; // days - default based on typical B2B sales cycle
+        try {
+            var response = opportunityClient.getAllOpportunities();
+            if (response != null && response.getData() != null) {
+                List<Map<String, Object>> opps = response.getData();
+                List<Long> cycleTimes = new ArrayList<>();
+
+                for (Map<String, Object> opp : opps) {
+                    String stage = String.valueOf(opp.getOrDefault("stage", ""));
+                    if ("CLOSED_WON".equals(stage)) {
+                        Object createdAtObj = opp.get("createdAt");
+                        Object closedAtObj = opp.get("closedAt");
+
+                        if (createdAtObj != null && closedAtObj != null) {
+                            LocalDateTime created = parseDateTime(createdAtObj);
+                            LocalDateTime closed = parseDateTime(closedAtObj);
+                            if (created != null && closed != null) {
+                                long days = java.time.temporal.ChronoUnit.DAYS.between(created, closed);
+                                cycleTimes.add(days);
+                            }
+                        }
+                    }
+                }
+
+                if (!cycleTimes.isEmpty()) {
+                    double avg = cycleTimes.stream()
+                            .mapToLong(Long::longValue)
+                            .average()
+                            .orElse(0.0);
+                    return Math.round(avg * 10) / 10.0;
+                }
+            }
+        } catch (Exception e) {
+            log.warn("Failed to calculate average sales cycle duration: {}", e.getMessage());
+        }
+        return 0.0;
     }
 
     /**
@@ -350,9 +421,36 @@ public class AnalyticsService {
                 .setScale(2, RoundingMode.HALF_UP);
     }
 
+    /**
+     * Calculate conversion rate for a specific lead source based on actual data.
+     * Conversion rate = (converted leads from source / total leads from source) * 100
+     */
     private BigDecimal calculateConversionRateForSource(String source) {
-        // Simplified: would need source tracking in lead entity
-        return BigDecimal.valueOf(15.0); // Default 15% conversion rate
+        try {
+            var response = leadClient.getAllLeads();
+            if (response != null && response.getData() != null) {
+                List<Map<String, Object>> leads = response.getData();
+
+                long totalFromSource = leads.stream()
+                        .filter(l -> source.equals(String.valueOf(l.getOrDefault("source", ""))))
+                        .count();
+
+                long convertedFromSource = leads.stream()
+                        .filter(l -> source.equals(String.valueOf(l.getOrDefault("source", ""))))
+                        .filter(l -> "CONVERTED".equals(String.valueOf(l.getOrDefault("status", ""))))
+                        .count();
+
+                if (totalFromSource > 0) {
+                    return BigDecimal.valueOf(convertedFromSource)
+                            .divide(BigDecimal.valueOf(totalFromSource), 4, RoundingMode.HALF_UP)
+                            .multiply(BigDecimal.valueOf(100))
+                            .setScale(2, RoundingMode.HALF_UP);
+                }
+            }
+        } catch (Exception e) {
+            log.warn("Failed to calculate conversion rate for source {}: {}", source, e.getMessage());
+        }
+        return BigDecimal.ZERO;
     }
 
     private long fetchWonCount() {
@@ -507,20 +605,77 @@ public class AnalyticsService {
     private List<SalesDashboardDto.LeadSourceAnalysis> analyzeLeadSources(Map<String, Long> leadCounts) {
         List<SalesDashboardDto.LeadSourceAnalysis> analyses = new ArrayList<>();
         String[] sources = {"WEB", "REFERRAL", "LINKEDIN", "TRADE_SHOW", "COLD_OUTREACH", "PARTNER"};
-        
+
+        try {
+            var response = leadClient.getAllLeads();
+            if (response != null && response.getData() != null) {
+                List<Map<String, Object>> leads = response.getData();
+
+                for (String source : sources) {
+                    List<Map<String, Object>> sourceLeads = leads.stream()
+                            .filter(l -> source.equals(String.valueOf(l.getOrDefault("source", ""))))
+                            .toList();
+
+                    long totalFromSource = sourceLeads.size();
+                    long convertedFromSource = sourceLeads.stream()
+                            .filter(l -> "CONVERTED".equals(String.valueOf(l.getOrDefault("status", ""))))
+                            .count();
+
+                    BigDecimal conversionRate = totalFromSource > 0
+                            ? BigDecimal.valueOf(convertedFromSource)
+                                    .divide(BigDecimal.valueOf(totalFromSource), 4, RoundingMode.HALF_UP)
+                                    .multiply(BigDecimal.valueOf(100))
+                                    .setScale(2, RoundingMode.HALF_UP)
+                            : BigDecimal.ZERO;
+
+                    SalesDashboardDto.LeadSourceAnalysis analysis = new SalesDashboardDto.LeadSourceAnalysis();
+                    analysis.setSource(source);
+                    analysis.setLeadCount(totalFromSource);
+                    analysis.setConversionCount(convertedFromSource);
+                    analysis.setConversionRate(conversionRate);
+                    analyses.add(analysis);
+                }
+                return analyses;
+            }
+        } catch (Exception e) {
+            log.warn("Failed to analyze lead sources from actual data: {}", e.getMessage());
+        }
+
+        // Fallback: use estimates
         for (String source : sources) {
             SalesDashboardDto.LeadSourceAnalysis analysis = new SalesDashboardDto.LeadSourceAnalysis();
             analysis.setSource(source);
-            // In real implementation, would group leads by source
-            // For now, estimate based on total leads
-            long totalLeads = leadCounts.values().stream().mapToLong(Long::longValue).sum();
-            long sourceCount = totalLeads > 0 ? Math.round(totalLeads * 0.15) : 0; // Estimate 15% per source
-            analysis.setLeadCount(sourceCount);
-            analysis.setConversionCount((long) (sourceCount * 0.2)); // Estimate 20% conversion
-            analysis.setConversionRate(BigDecimal.valueOf(20.0));
+            analysis.setLeadCount(0L);
+            analysis.setConversionCount(0L);
+            analysis.setConversionRate(BigDecimal.ZERO);
             analyses.add(analysis);
         }
-        
         return analyses;
+    }
+
+    /**
+     * Parse datetime from various possible formats returned by Feign clients.
+     */
+    private LocalDateTime parseDateTime(Object dateObj) {
+        if (dateObj == null) return null;
+        try {
+            if (dateObj instanceof String s) {
+                // Handle ISO format: "2025-01-15T10:30:00" or "2025-01-15"
+                if (s.length() >= 10) {
+                    if (s.contains("T")) {
+                        return LocalDateTime.parse(s);
+                    } else {
+                        return LocalDate.parse(s, DateTimeFormatter.ISO_DATE).atStartOfDay();
+                    }
+                }
+            } else if (dateObj instanceof LocalDateTime ldt) {
+                return ldt;
+            } else if (dateObj instanceof LocalDate ld) {
+                return ld.atStartOfDay();
+            }
+        } catch (Exception e) {
+            log.trace("Failed to parse datetime: {}", dateObj);
+        }
+        return null;
     }
 }
