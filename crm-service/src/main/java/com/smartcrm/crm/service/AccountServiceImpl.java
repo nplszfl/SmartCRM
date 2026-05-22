@@ -52,10 +52,51 @@ public class AccountServiceImpl extends ServiceImpl<AccountRepository, Account> 
 
     public Account suspendAccount(Long id) {
         Account account = this.getById(id);
-        if (account != null) {
-            account.setStatus("SUSPENDED");
-            this.updateById(account);
+        if (account == null) {
+            throw new ResourceNotFoundException("Account", id);
         }
+        account.setStatus("SUSPENDED");
+        this.updateById(account);
         return account;
+    }
+
+    public List<Account> getAllAccounts() {
+        return this.list();
+    }
+
+    public List<Account> getAccountsByStatus(String status) {
+        return this.list(new LambdaQueryWrapper<Account>().eq(Account::getStatus, status));
+    }
+
+    public long countByStatus(String status) {
+        return this.count(new LambdaQueryWrapper<Account>().eq(Account::getStatus, status));
+    }
+
+    public long countAll() {
+        return this.count();
+    }
+
+    public Account activateAccount(Long id) {
+        Account account = this.getById(id);
+        if (account == null) {
+            throw new ResourceNotFoundException("Account", id);
+        }
+        account.setStatus("ACTIVE");
+        this.updateById(account);
+        return account;
+    }
+
+    public Account closeAccount(Long id) {
+        Account account = this.getById(id);
+        if (account == null) {
+            throw new ResourceNotFoundException("Account", id);
+        }
+        account.setStatus("CLOSED");
+        this.updateById(account);
+        return account;
+    }
+
+    public List<Account> searchAccountsByName(String name) {
+        return this.list(new LambdaQueryWrapper<Account>().like(Account::getAccountName, name));
     }
 }

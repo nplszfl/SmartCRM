@@ -50,6 +50,15 @@ public class CustomerController {
         return ApiResponse.success(customers);
     }
 
+    @GetMapping("/page")
+    public ApiResponse<com.smartcrm.common.dto.PageResponse<Customer>> getCustomersPage(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        log.info("REST request to get customers page: {}, size: {}", page, size);
+        com.smartcrm.common.dto.PageResponse<Customer> pageResp = customerService.getAllCustomers(page, size);
+        return ApiResponse.success(pageResp);
+    }
+
     @GetMapping("/owner/{ownerId}")
     public ApiResponse<List<Customer>> getCustomersByOwner(@PathVariable Long ownerId) {
         log.info("REST request to get customers by owner: {}", ownerId);

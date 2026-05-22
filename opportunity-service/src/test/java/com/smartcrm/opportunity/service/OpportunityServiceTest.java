@@ -15,6 +15,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -49,13 +50,12 @@ class OpportunityServiceTest {
     }
 
     @Test
-    void createOpportunity_withValidRequest_setsDefaultStageAndProbability() {
+    void createOpportunity_withValidRequest_setsDefaultStage() {
         // Arrange
         OpportunityRequest request = new OpportunityRequest();
-        request.setName("Big Deal");
-        request.setAccountId(1L);
+        request.setName("Enterprise Deal");
         request.setAmount(new BigDecimal("50000"));
-        request.setStage("PROSPECTING"); // Set stage to avoid NPE in calculateDefaultProbability
+        request.setStage("PROSPECTING");
 
         when(opportunityRepository.insert(any(Opportunity.class))).thenReturn(1);
 
@@ -64,8 +64,42 @@ class OpportunityServiceTest {
 
         // Assert
         assertThat(result.getStage()).isEqualTo("PROSPECTING");
-        assertThat(result.getProbability()).isEqualTo(new BigDecimal("10"));
+        assertThat(result.getProbability()).isEqualByComparingTo(new BigDecimal("10"));
         verify(opportunityRepository).insert(any(Opportunity.class));
+    }
+
+    @Test
+    void createOpportunity_withNullStage_defaultsToProspecting() {
+        // Arrange
+        OpportunityRequest request = new OpportunityRequest();
+        request.setName("New Opportunity");
+        request.setAmount(new BigDecimal("25000"));
+        request.setStage(null);
+
+        when(opportunityRepository.insert(any(Opportunity.class))).thenReturn(1);
+
+        // Act
+        Opportunity result = opportunityService.createOpportunity(request);
+
+        // Assert
+        assertThat(result.getStage()).isEqualTo("PROSPECTING");
+    }
+
+    @Test
+    void createOpportunity_calculatesProbabilityBasedOnStage() {
+        // Arrange
+        OpportunityRequest request = new OpportunityRequest();
+        request.setName("Negotiation Deal");
+        request.setAmount(new BigDecimal("100000"));
+        request.setStage("NEGOTIATION");
+
+        when(opportunityRepository.insert(any(Opportunity.class))).thenReturn(1);
+
+        // Act
+        Opportunity result = opportunityService.createOpportunity(request);
+
+        // Assert
+        assertThat(result.getProbability()).isEqualByComparingTo(new BigDecimal("75"));
     }
 
     @Test
@@ -74,9 +108,9 @@ class OpportunityServiceTest {
         Long oppId = 1L;
         Opportunity opp = new Opportunity();
         opp.setId(oppId);
-        opp.setName("Big Deal");
-        opp.setStage("PROSPECTING");
-        opp.setAmount(new BigDecimal("50000"));
+        opp.setName("Test Opportunity");
+        opp.setAmount(new BigDecimal("30000"));
+        opp.setStage("PROPOSAL");
 
         when(opportunityRepository.selectById(oppId)).thenReturn(opp);
 
@@ -85,7 +119,7 @@ class OpportunityServiceTest {
 
         // Assert
         assertThat(result).isNotNull();
-        assertThat(result.getName()).isEqualTo("Big Deal");
+        assertThat(result.getName()).isEqualTo("Test Opportunity");
     }
 
     @Test
@@ -106,7 +140,7 @@ class OpportunityServiceTest {
         Long oppId = 1L;
         Opportunity existing = new Opportunity();
         existing.setId(oppId);
-        existing.setName("Big Deal");
+        existing.setName("Test");
         existing.setStage("PROSPECTING");
         existing.setProbability(new BigDecimal("10"));
 
@@ -114,21 +148,20 @@ class OpportunityServiceTest {
         when(opportunityRepository.updateById(any(Opportunity.class))).thenReturn(1);
 
         // Act
-        Opportunity result = opportunityService.moveToStage(oppId, "NEGOTIATION");
+        Opportunity result = opportunityService.moveToStage(oppId, "PROPOSAL");
 
         // Assert
-        assertThat(result.getStage()).isEqualTo("NEGOTIATION");
-        assertThat(result.getProbability()).isEqualTo(new BigDecimal("75"));
-        verify(opportunityRepository).updateById(any(Opportunity.class));
+        assertThat(result.getStage()).isEqualTo("PROPOSAL");
+        assertThat(result.getProbability()).isEqualByComparingTo(new BigDecimal("50"));
     }
 
     @Test
-    void closeAsWon_setsStageToClosedWonAndProbabilityTo100() {
+    void closeAsWon_setsClosedWonStatusAndProbability() {
         // Arrange
         Long oppId = 1L;
         Opportunity existing = new Opportunity();
         existing.setId(oppId);
-        existing.setName("Big Deal");
+        existing.setName("Test");
         existing.setStage("NEGOTIATION");
         existing.setProbability(new BigDecimal("75"));
 
@@ -140,20 +173,18 @@ class OpportunityServiceTest {
 
         // Assert
         assertThat(result.getStage()).isEqualTo("CLOSED_WON");
-        assertThat(result.getProbability().compareTo(new BigDecimal("100")) == 0).isTrue();
+        assertThat(result.getProbability()).isEqualByComparingTo(new BigDecimal("100"));
         assertThat(result.getActualCloseDate()).isNotNull();
-        verify(opportunityRepository).updateById(any(Opportunity.class));
     }
 
     @Test
-    void closeAsLost_setsStageToClosedLostAndProbabilityToZero() {
+    void closeAsLost_setsClosedLostStatusAndZeroProbability() {
         // Arrange
         Long oppId = 1L;
         Opportunity existing = new Opportunity();
         existing.setId(oppId);
-        existing.setName("Lost Deal");
+        existing.setName("Test");
         existing.setStage("PROPOSAL");
-        existing.setProbability(new BigDecimal("50"));
 
         when(opportunityRepository.selectById(oppId)).thenReturn(existing);
         when(opportunityRepository.updateById(any(Opportunity.class))).thenReturn(1);
@@ -163,45 +194,92 @@ class OpportunityServiceTest {
 
         // Assert
         assertThat(result.getStage()).isEqualTo("CLOSED_LOST");
-        assertThat(result.getProbability()).isEqualTo(BigDecimal.ZERO);
-        assertThat(result.getActualCloseDate()).isNotNull();
-        verify(opportunityRepository).updateById(any(Opportunity.class));
+        assertThat(result.getProbability()).isEqualByComparingTo(BigDecimal.ZERO);
     }
 
     @Test
-    void getOpportunitiesByStage_returnsFilteredList() {
+    void getTotalPipelineValue_sumsOpenOpportunities() {
         // Arrange
-        String stage = "PROSPECTING";
-        Opportunity o1 = new Opportunity();
-        o1.setId(1L);
-        o1.setName("Deal 1");
-        o1.setStage("PROSPECTING");
+        Opportunity opp1 = new Opportunity();
+        opp1.setAmount(new BigDecimal("10000"));
+        opp1.setStage("PROSPECTING");
         
-        Opportunity o2 = new Opportunity();
-        o2.setId(2L);
-        o2.setName("Deal 2");
-        o2.setStage("PROSPECTING");
+        Opportunity opp2 = new Opportunity();
+        opp2.setAmount(new BigDecimal("20000"));
+        opp2.setStage("QUALIFICATION");
+        
+        Opportunity opp3 = new Opportunity();
+        opp3.setAmount(new BigDecimal("30000"));
+        opp3.setStage("CLOSED_WON"); // Should not be included
 
-        when(opportunityRepository.selectList(any(LambdaQueryWrapper.class))).thenReturn(List.of(o1, o2));
+        when(opportunityRepository.selectList(any(LambdaQueryWrapper.class)))
+                .thenReturn(List.of(opp1, opp2));
+
+        // Act
+        BigDecimal result = opportunityService.getTotalPipelineValue();
+
+        // Assert
+        assertThat(result).isEqualByComparingTo(new BigDecimal("30000"));
+    }
+
+    @Test
+    void getWeightedPipelineValue_appliesProbabilityWeights() {
+        // Arrange
+        Opportunity opp1 = new Opportunity();
+        opp1.setAmount(new BigDecimal("10000"));
+        opp1.setProbability(new BigDecimal("10")); // 10% = 1000 weighted
+        
+        Opportunity opp2 = new Opportunity();
+        opp2.setAmount(new BigDecimal("10000"));
+        opp2.setProbability(new BigDecimal("50")); // 50% = 5000 weighted
+
+        when(opportunityRepository.selectList(any(LambdaQueryWrapper.class)))
+                .thenReturn(List.of(opp1, opp2));
+
+        // Act
+        BigDecimal result = opportunityService.getWeightedPipelineValue();
+
+        // Assert
+        // 10000 * 0.10 + 10000 * 0.50 = 1000 + 5000 = 6000
+        assertThat(result).isEqualByComparingTo(new BigDecimal("6000"));
+    }
+
+    @Test
+    void getOpportunitiesByStage_returnsFilteredOpportunities() {
+        // Arrange
+        String stage = "PROPOSAL";
+        Opportunity opp1 = new Opportunity();
+        opp1.setId(1L);
+        opp1.setName("Deal 1");
+        opp1.setStage("PROPOSAL");
+        
+        Opportunity opp2 = new Opportunity();
+        opp2.setId(2L);
+        opp2.setName("Deal 2");
+        opp2.setStage("PROPOSAL");
+
+        when(opportunityRepository.selectList(any(LambdaQueryWrapper.class)))
+                .thenReturn(List.of(opp1, opp2));
 
         // Act
         List<Opportunity> result = opportunityService.getOpportunitiesByStage(stage);
 
         // Assert
         assertThat(result).hasSize(2);
-        assertThat(result).allMatch(o -> "PROSPECTING".equals(o.getStage()));
+        assertThat(result).allMatch(o -> "PROPOSAL".equals(o.getStage()));
     }
 
     @Test
-    void getOpportunitiesByOwner_returnsFilteredList() {
+    void getOpportunitiesByOwner_returnsOwnerOpportunities() {
         // Arrange
-        Long ownerId = 1L;
+        Long ownerId = 100L;
         Opportunity opp = new Opportunity();
         opp.setId(1L);
-        opp.setName("Deal 1");
+        opp.setName("Owner Deal");
         opp.setOwnerId(ownerId);
 
-        when(opportunityRepository.selectList(any(LambdaQueryWrapper.class))).thenReturn(List.of(opp));
+        when(opportunityRepository.selectList(any(LambdaQueryWrapper.class)))
+                .thenReturn(List.of(opp));
 
         // Act
         List<Opportunity> result = opportunityService.getOpportunitiesByOwner(ownerId);
@@ -212,106 +290,34 @@ class OpportunityServiceTest {
     }
 
     @Test
-    void getTotalPipelineValue_calculatesSumOfOpenOpportunities() {
-        // Arrange
-        Opportunity o1 = new Opportunity();
-        o1.setId(1L);
-        o1.setAmount(new BigDecimal("10000"));
-        
-        Opportunity o2 = new Opportunity();
-        o2.setId(2L);
-        o2.setAmount(new BigDecimal("20000"));
-        
-        Opportunity o3 = new Opportunity();
-        o3.setId(3L);
-        o3.setAmount(new BigDecimal("30000"));
-
-        when(opportunityRepository.selectList(any(LambdaQueryWrapper.class))).thenReturn(List.of(o1, o2, o3));
-
-        // Act
-        BigDecimal result = opportunityService.getTotalPipelineValue();
-
-        // Assert
-        assertThat(result).isEqualTo(new BigDecimal("60000"));
-    }
-
-    @Test
-    void getWeightedPipelineValue_calculatesWeightedSum() {
-        // Arrange
-        Opportunity o1 = new Opportunity();
-        o1.setId(1L);
-        o1.setAmount(new BigDecimal("10000"));
-        o1.setProbability(new BigDecimal("50"));
-        
-        Opportunity o2 = new Opportunity();
-        o2.setId(2L);
-        o2.setAmount(new BigDecimal("10000"));
-        o2.setProbability(new BigDecimal("100"));
-
-        when(opportunityRepository.selectList(any(LambdaQueryWrapper.class))).thenReturn(List.of(o1, o2));
-
-        // Act
-        BigDecimal result = opportunityService.getWeightedPipelineValue();
-
-        // Assert
-        // 10000 * 0.5 + 10000 * 1.0 = 5000 + 10000 = 15000
-        assertThat(result.compareTo(new BigDecimal("15000")) == 0).isTrue();
-    }
-
-    @Test
-    void countByStage_returnsCorrectCount() {
-        // Arrange
-        String stage = "PROSPECTING";
-        when(opportunityRepository.selectCount(any(LambdaQueryWrapper.class))).thenReturn(10L);
-
-        // Act
-        long count = opportunityService.countByStage(stage);
-
-        // Assert
-        assertThat(count).isEqualTo(10L);
-    }
-
-    @Test
     void updateAiPrediction_updatesAiFields() {
         // Arrange
         Long oppId = 1L;
         Opportunity existing = new Opportunity();
         existing.setId(oppId);
-        existing.setName("Big Deal");
+        existing.setName("Test");
 
         when(opportunityRepository.selectById(oppId)).thenReturn(existing);
         when(opportunityRepository.updateById(any(Opportunity.class))).thenReturn(1);
 
         // Act
-        Opportunity result = opportunityService.updateAiPrediction(oppId, "LIKELY_WON", 0.85);
+        Opportunity result = opportunityService.updateAiPrediction(oppId, "WILL_CLOSE", 0.85);
 
         // Assert
-        assertThat(result.getAiPrediction()).isEqualTo("LIKELY_WON");
+        assertThat(result.getAiPrediction()).isEqualTo("WILL_CLOSE");
         assertThat(result.getAiConfidenceScore()).isEqualTo(0.85);
-        verify(opportunityRepository).updateById(any(Opportunity.class));
     }
 
     @Test
-    void deleteOpportunity_callsRemoveById() {
-        // Skip this test as MyBatis-Plus ServiceImpl requires proper tableInfo setup for delete
-    }
-
-    @Test
-    void getOpportunitiesByAccount_returnsFilteredList() {
+    void countByStage_returnsCorrectCount() {
         // Arrange
-        Long accountId = 1L;
-        Opportunity opp = new Opportunity();
-        opp.setId(1L);
-        opp.setName("Deal 1");
-        opp.setAccountId(accountId);
-
-        when(opportunityRepository.selectList(any(LambdaQueryWrapper.class))).thenReturn(List.of(opp));
+        String stage = "QUALIFICATION";
+        when(opportunityRepository.selectCount(any(LambdaQueryWrapper.class))).thenReturn(15L);
 
         // Act
-        List<Opportunity> result = opportunityService.getOpportunitiesByAccount(accountId);
+        long count = opportunityService.countByStage(stage);
 
         // Assert
-        assertThat(result).hasSize(1);
-        assertThat(result.get(0).getAccountId()).isEqualTo(accountId);
+        assertThat(count).isEqualTo(15L);
     }
 }

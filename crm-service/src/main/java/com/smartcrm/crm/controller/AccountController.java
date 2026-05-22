@@ -70,4 +70,39 @@ public class AccountController {
         Account account = accountService.suspendAccount(id);
         return ApiResponse.success(account);
     }
+
+    @GetMapping
+    public ApiResponse<List<Account>> getAllAccounts() {
+        log.info("REST request to get all accounts");
+        List<Account> accounts = accountService.getAllAccounts();
+        return ApiResponse.success(accounts);
+    }
+
+    @GetMapping("/status/{status}")
+    public ApiResponse<List<Account>> getAccountsByStatus(@PathVariable String status) {
+        log.info("REST request to get accounts by status: {}", status);
+        List<Account> accounts = accountService.getAccountsByStatus(status);
+        return ApiResponse.success(accounts);
+    }
+
+    @GetMapping("/search")
+    public ApiResponse<List<Account>> searchAccounts(@RequestParam String name) {
+        log.info("REST request to search accounts by name: {}", name);
+        List<Account> accounts = accountService.searchAccountsByName(name);
+        return ApiResponse.success(accounts);
+    }
+
+    @PatchMapping("/{id}/activate")
+    public ApiResponse<Account> activateAccount(@PathVariable Long id) {
+        log.info("REST request to activate account: {}", id);
+        Account account = accountService.activateAccount(id);
+        return ApiResponse.success(account);
+    }
+
+    @PatchMapping("/{id}/close")
+    public ApiResponse<Account> closeAccount(@PathVariable Long id) {
+        log.info("REST request to close account: {}", id);
+        Account account = accountService.closeAccount(id);
+        return ApiResponse.success(account);
+    }
 }

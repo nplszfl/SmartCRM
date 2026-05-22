@@ -1,6 +1,7 @@
 package com.smartcrm.crm.controller;
 
 import com.smartcrm.common.dto.ApiResponse;
+import com.smartcrm.common.dto.PageResponse;
 import com.smartcrm.crm.entity.Contact;
 import com.smartcrm.crm.service.ContactServiceImpl;
 import lombok.extern.slf4j.Slf4j;
@@ -69,5 +70,21 @@ public class ContactController {
         log.info("REST request to delete contact: {}", id);
         contactService.deleteContact(id);
         return ApiResponse.success("Contact deleted successfully", null);
+    }
+
+    @GetMapping("/page")
+    public ApiResponse<PageResponse<Contact>> getContactsPage(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        log.info("REST request to get contacts page: {}, size: {}", page, size);
+        PageResponse<Contact> pageResp = contactService.getAllContacts(page, size);
+        return ApiResponse.success(pageResp);
+    }
+
+    @GetMapping
+    public ApiResponse<List<Contact>> getAllContacts() {
+        log.info("REST request to get all contacts");
+        List<Contact> contacts = contactService.getAllContacts();
+        return ApiResponse.success(contacts);
     }
 }

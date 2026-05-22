@@ -58,6 +58,33 @@ public class CustomerServiceImpl extends ServiceImpl<CustomerRepository, Custome
         this.removeById(id);
     }
 
+    public com.smartcrm.common.dto.PageResponse<Customer> getAllCustomers(int page, int size) {
+        com.baomidou.mybatisplus.core.metadata.IPage<Customer> pageParam = new com.baomidou.mybatisplus.extension.plugins.pagination.Page<>(page, size);
+        com.baomidou.mybatisplus.core.metadata.IPage<Customer> result = this.page(pageParam);
+        return com.smartcrm.common.dto.PageResponse.of(
+            result.getTotal(), page, size, result.getRecords());
+    }
+
+    public List<Customer> getCustomersByStatus(String status) {
+        return this.list(new LambdaQueryWrapper<Customer>().eq(Customer::getCustomerType, status));
+    }
+
+    public long countByStatus(String status) {
+        return this.count(new LambdaQueryWrapper<Customer>().eq(Customer::getCustomerType, status));
+    }
+
+    public long countAll() {
+        return this.count();
+    }
+
+    public long countByIndustry(String industry) {
+        return this.count(new LambdaQueryWrapper<Customer>().eq(Customer::getIndustry, industry));
+    }
+
+    public List<Customer> searchByName(String name) {
+        return this.list(new LambdaQueryWrapper<Customer>().like(Customer::getName, name));
+    }
+
     public Customer convertToActive(Long id) {
         Customer customer = this.getById(id);
         if (customer != null) {

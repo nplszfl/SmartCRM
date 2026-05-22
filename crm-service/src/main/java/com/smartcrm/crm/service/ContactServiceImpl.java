@@ -9,6 +9,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 
 import java.util.List;
+import com.smartcrm.common.dto.PageResponse;
 
 /**
  * Contact service implementation.
@@ -53,5 +54,23 @@ public class ContactServiceImpl extends ServiceImpl<ContactRepository, Contact> 
 
     public List<Contact> searchContactsByEmail(String email) {
         return this.list(new LambdaQueryWrapper<Contact>().like(Contact::getEmail, email));
+    }
+
+    public PageResponse<Contact> getAllContacts(int page, int size) {
+        com.baomidou.mybatisplus.core.metadata.IPage<Contact> pageParam = new com.baomidou.mybatisplus.extension.plugins.pagination.Page<>(page, size);
+        com.baomidou.mybatisplus.core.metadata.IPage<Contact> result = this.page(pageParam);
+        return PageResponse.of(result.getTotal(), page, size, result.getRecords());
+    }
+
+    public List<Contact> getAllContacts() {
+        return this.list();
+    }
+
+    public long countByCustomer(Long customerId) {
+        return this.count(new LambdaQueryWrapper<Contact>().eq(Contact::getCustomerId, customerId));
+    }
+
+    public long countAll() {
+        return this.count();
     }
 }
