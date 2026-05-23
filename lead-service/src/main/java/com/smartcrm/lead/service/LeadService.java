@@ -8,6 +8,7 @@ import com.smartcrm.lead.repository.LeadRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.smartcrm.common.dto.PageResponse;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -73,6 +74,12 @@ public class LeadService extends ServiceImpl<LeadRepository, Lead> {
 
     public List<Lead> getAllLeads() {
         return this.list();
+    }
+
+    public PageResponse<Lead> getAllLeadsPage(int page, int size) {
+        com.baomidou.mybatisplus.core.metadata.IPage<Lead> pageParam = new com.baomidou.mybatisplus.extension.plugins.pagination.Page<>(page, size);
+        com.baomidou.mybatisplus.core.metadata.IPage<Lead> result = this.page(pageParam);
+        return PageResponse.of(result.getTotal(), page, size, result.getRecords());
     }
 
     public List<Lead> getLeadsByStatus(String status) {

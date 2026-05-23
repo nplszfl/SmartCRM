@@ -1,6 +1,7 @@
 package com.smartcrm.lead.controller;
 
 import com.smartcrm.common.dto.ApiResponse;
+import com.smartcrm.common.dto.PageResponse;
 import com.smartcrm.lead.dto.LeadRequest;
 import com.smartcrm.lead.entity.Lead;
 import com.smartcrm.lead.service.LeadService;
@@ -45,6 +46,14 @@ public class LeadController {
     public ApiResponse<List<Lead>> getAllLeads() {
         List<Lead> leads = leadService.getAllLeads();
         return ApiResponse.success(leads);
+    }
+
+    @GetMapping("/page")
+    public ApiResponse<PageResponse<Lead>> getAllLeadsPage(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        PageResponse<Lead> pageResp = leadService.getAllLeadsPage(page, size);
+        return ApiResponse.success(pageResp);
     }
 
     @GetMapping("/status/{status}")

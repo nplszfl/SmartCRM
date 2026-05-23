@@ -22,6 +22,9 @@ public class LeadRequest {
 
     private String phone;
     private String company;
+    private String industry;
+    private String companySize;
+    private Double annualRevenue;
     private String title;
     private String source;
 

@@ -20,6 +20,9 @@ public class Lead {
     private String email;
     private String phone;
     private String company;
+    private String industry; // Industry for AI scoring
+    private String companySize; // SMALL, MEDIUM, LARGE, ENTERPRISE
+    private Double annualRevenue; // Annual revenue for AI scoring
     private String title;
     private String source; // WEB, REFERRAL, CAMPAIGN, COLD_CALL, TRADE_SHOW
 
