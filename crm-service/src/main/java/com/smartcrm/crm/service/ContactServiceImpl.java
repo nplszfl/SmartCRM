@@ -35,7 +35,11 @@ public class ContactServiceImpl extends ServiceImpl<ContactRepository, Contact> 
     }
 
     public Contact getContactById(Long id) {
-        return this.getById(id);
+        Contact contact = this.getById(id);
+        if (contact == null) {
+            throw new ResourceNotFoundException("Contact", id);
+        }
+        return contact;
     }
 
     public List<Contact> getContactsByCustomerId(Long customerId) {

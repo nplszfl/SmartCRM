@@ -35,7 +35,11 @@ public class AccountServiceImpl extends ServiceImpl<AccountRepository, Account> 
     }
 
     public Account getAccountById(Long id) {
-        return this.getById(id);
+        Account account = this.getById(id);
+        if (account == null) {
+            throw new ResourceNotFoundException("Account", id);
+        }
+        return account;
     }
 
     public Account getAccountByAccountNumber(String accountNumber) {

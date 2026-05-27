@@ -35,7 +35,11 @@ public class CustomerServiceImpl extends ServiceImpl<CustomerRepository, Custome
     }
 
     public Customer getCustomerById(Long id) {
-        return this.getById(id);
+        Customer customer = this.getById(id);
+        if (customer == null) {
+            throw new ResourceNotFoundException("Customer", id);
+        }
+        return customer;
     }
 
     public List<Customer> getAllCustomers() {

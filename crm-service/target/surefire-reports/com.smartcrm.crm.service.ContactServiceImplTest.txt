@@ -1,22 +1,4 @@
 -------------------------------------------------------------------------------
 Test set: com.smartcrm.crm.service.ContactServiceImplTest
 -------------------------------------------------------------------------------
-Tests run: 7, Failures: 1, Errors: 1, Skipped: 0, Time elapsed: 0.688 s <<< FAILURE! -- in com.smartcrm.crm.service.ContactServiceImplTest
-com.smartcrm.crm.service.ContactServiceImplTest.deleteContact_callsRemoveById -- Time elapsed: 0.643 s <<< ERROR!
-java.lang.NullPointerException: Cannot invoke "com.baomidou.mybatisplus.core.metadata.TableInfo.isWithLogicDelete()" because "tableInfo" is null
-	at com.baomidou.mybatisplus.extension.service.impl.ServiceImpl.removeById(ServiceImpl.java:302)
-	at com.smartcrm.crm.service.ContactServiceImpl.deleteContact(ContactServiceImpl.java:51)
-	at com.smartcrm.crm.service.ContactServiceImplTest.deleteContact_callsRemoveById(ContactServiceImplTest.java:169)
-	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
-	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
-	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
-
-com.smartcrm.crm.service.ContactServiceImplTest.getPrimaryContact_returnsPrimaryContactForCustomer -- Time elapsed: 0.009 s <<< FAILURE!
-java.lang.AssertionError: 
-
-Expecting actual not to be null
-	at com.smartcrm.crm.service.ContactServiceImplTest.getPrimaryContact_returnsPrimaryContactForCustomer(ContactServiceImplTest.java:139)
-	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
-	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
-	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
-
+Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.651 s -- in com.smartcrm.crm.service.ContactServiceImplTest
