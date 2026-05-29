@@ -28,6 +28,9 @@
         <module>email-service</module>
         <module>analytics-service</module>
         <module>ai-service</module>
+        <module>customer-scoring-service</module>
+        <module>smart-followup-service</module>
+        <module>sales-forecast-service</module>
     </modules>
 
     <properties>

@@ -1,0 +1,11 @@
+com/smartcrm/followup/dto/FollowupTaskRequest.class
+com/smartcrm/followup/dto/FollowupTaskResponse$FollowupTaskResponseBuilder.class
+com/smartcrm/followup/service/SmartFollowupService.class
+com/smartcrm/followup/mapper/FollowupTaskMapper.class
+com/smartcrm/followup/entity/FollowupTask.class
+com/smartcrm/followup/dto/FollowupTaskResponse.class
+com/smartcrm/followup/SmartFollowupApplication.class
+com/smartcrm/followup/controller/SmartFollowupController.class
+com/smartcrm/followup/dto/BestFollowupTimeResponse.class
+com/smartcrm/followup/dto/BestFollowupTimeResponse$BestFollowupTimeResponseBuilder.class
+com/smartcrm/followup/service/AiFollowupService.class

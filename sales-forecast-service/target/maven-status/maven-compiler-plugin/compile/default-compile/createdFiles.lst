@@ -1,0 +1,14 @@
+com/smartcrm/forecast/service/AiForecastService.class
+com/smartcrm/forecast/dto/ConversionForecastResponse.class
+com/smartcrm/forecast/dto/MonthlyForecastResponse$MonthlyForecastResponseBuilder.class
+com/smartcrm/forecast/SalesForecastApplication.class
+com/smartcrm/forecast/dto/ConversionForecastResponse$ConversionForecastResponseBuilder.class
+com/smartcrm/forecast/controller/SalesForecastController.class
+com/smartcrm/forecast/entity/SalesForecast.class
+com/smartcrm/forecast/dto/MonthlyForecastResponse.class
+com/smartcrm/forecast/dto/TargetCompletionResponse.class
+com/smartcrm/forecast/entity/SalesTarget.class
+com/smartcrm/forecast/mapper/SalesForecastMapper.class
+com/smartcrm/forecast/dto/TargetCompletionResponse$TargetCompletionResponseBuilder.class
+com/smartcrm/forecast/service/SalesForecastService.class
+com/smartcrm/forecast/mapper/SalesTargetMapper.class

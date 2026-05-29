@@ -1,0 +1,9 @@
+/Users/huanghuixiang/smartcrm/smart-followup-service/src/main/java/com/smartcrm/followup/service/SmartFollowupService.java
+/Users/huanghuixiang/smartcrm/smart-followup-service/src/main/java/com/smartcrm/followup/controller/SmartFollowupController.java
+/Users/huanghuixiang/smartcrm/smart-followup-service/src/main/java/com/smartcrm/followup/dto/FollowupTaskRequest.java
+/Users/huanghuixiang/smartcrm/smart-followup-service/src/main/java/com/smartcrm/followup/service/AiFollowupService.java
+/Users/huanghuixiang/smartcrm/smart-followup-service/src/main/java/com/smartcrm/followup/SmartFollowupApplication.java
+/Users/huanghuixiang/smartcrm/smart-followup-service/src/main/java/com/smartcrm/followup/dto/BestFollowupTimeResponse.java
+/Users/huanghuixiang/smartcrm/smart-followup-service/src/main/java/com/smartcrm/followup/mapper/FollowupTaskMapper.java
+/Users/huanghuixiang/smartcrm/smart-followup-service/src/main/java/com/smartcrm/followup/entity/FollowupTask.java
+/Users/huanghuixiang/smartcrm/smart-followup-service/src/main/java/com/smartcrm/followup/dto/FollowupTaskResponse.java

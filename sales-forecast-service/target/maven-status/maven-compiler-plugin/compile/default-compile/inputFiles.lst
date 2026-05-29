@@ -1,0 +1,11 @@
+/Users/huanghuixiang/smartcrm/sales-forecast-service/src/main/java/com/smartcrm/forecast/dto/TargetCompletionResponse.java
+/Users/huanghuixiang/smartcrm/sales-forecast-service/src/main/java/com/smartcrm/forecast/mapper/SalesTargetMapper.java
+/Users/huanghuixiang/smartcrm/sales-forecast-service/src/main/java/com/smartcrm/forecast/service/SalesForecastService.java
+/Users/huanghuixiang/smartcrm/sales-forecast-service/src/main/java/com/smartcrm/forecast/dto/MonthlyForecastResponse.java
+/Users/huanghuixiang/smartcrm/sales-forecast-service/src/main/java/com/smartcrm/forecast/entity/SalesTarget.java
+/Users/huanghuixiang/smartcrm/sales-forecast-service/src/main/java/com/smartcrm/forecast/dto/ConversionForecastResponse.java
+/Users/huanghuixiang/smartcrm/sales-forecast-service/src/main/java/com/smartcrm/forecast/SalesForecastApplication.java
+/Users/huanghuixiang/smartcrm/sales-forecast-service/src/main/java/com/smartcrm/forecast/service/AiForecastService.java
+/Users/huanghuixiang/smartcrm/sales-forecast-service/src/main/java/com/smartcrm/forecast/entity/SalesForecast.java
+/Users/huanghuixiang/smartcrm/sales-forecast-service/src/main/java/com/smartcrm/forecast/mapper/SalesForecastMapper.java
+/Users/huanghuixiang/smartcrm/sales-forecast-service/src/main/java/com/smartcrm/forecast/controller/SalesForecastController.java

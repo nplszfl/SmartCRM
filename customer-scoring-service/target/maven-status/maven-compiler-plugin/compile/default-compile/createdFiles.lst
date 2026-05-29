@@ -1,0 +1,9 @@
+com/smartcrm/customer/service/CustomerScoringService.class
+com/smartcrm/customer/service/AiScoringService.class
+com/smartcrm/customer/dto/CustomerScoringResponse$CustomerScoringResponseBuilder.class
+com/smartcrm/customer/controller/CustomerScoringController.class
+com/smartcrm/customer/CustomerScoringApplication.class
+com/smartcrm/customer/dto/CustomerScoringRequest.class
+com/smartcrm/customer/entity/CustomerScore.class
+com/smartcrm/customer/dto/CustomerScoringResponse.class
+com/smartcrm/customer/mapper/CustomerScoreMapper.class

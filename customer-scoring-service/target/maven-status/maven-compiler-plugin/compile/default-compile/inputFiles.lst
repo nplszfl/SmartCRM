@@ -1,0 +1,8 @@
+/Users/huanghuixiang/smartcrm/customer-scoring-service/src/main/java/com/smartcrm/customer/entity/CustomerScore.java
+/Users/huanghuixiang/smartcrm/customer-scoring-service/src/main/java/com/smartcrm/customer/CustomerScoringApplication.java
+/Users/huanghuixiang/smartcrm/customer-scoring-service/src/main/java/com/smartcrm/customer/mapper/CustomerScoreMapper.java
+/Users/huanghuixiang/smartcrm/customer-scoring-service/src/main/java/com/smartcrm/customer/service/CustomerScoringService.java
+/Users/huanghuixiang/smartcrm/customer-scoring-service/src/main/java/com/smartcrm/customer/controller/CustomerScoringController.java
+/Users/huanghuixiang/smartcrm/customer-scoring-service/src/main/java/com/smartcrm/customer/dto/CustomerScoringRequest.java
+/Users/huanghuixiang/smartcrm/customer-scoring-service/src/main/java/com/smartcrm/customer/dto/CustomerScoringResponse.java
+/Users/huanghuixiang/smartcrm/customer-scoring-service/src/main/java/com/smartcrm/customer/service/AiScoringService.java
