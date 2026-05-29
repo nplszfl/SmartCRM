@@ -20,6 +20,9 @@ SmartCRM 是一套**深度AI融合**的客户关系管理系统，对标Salesfor
 | 📅 **智能跟进** | AI判断最佳跟进时机，自动提醒 | 成交率提升35% |
 | 🔮 **成交预测** | 预测订单成交概率，预警流失风险 | 营收预测准确率90% |
 | 📞 **AI销售教练** | 分析通话/聊天，提取改进建议 | 快速提升新人能力 |
+| ⭐ **客户评分服务** | LV1-LV5客户分级，流失风险预警 | 精准客户运营 |
+| 🤖 **智能跟进提醒** | 自动生成跟进任务，超时预警 | 杜绝漏跟错跟 |
+| 📈 **销售预测** | 月度销售预测，商机组转化预测 | 科学制定目标 |
 
 ## 🏗️ 系统架构
 
@@ -37,9 +40,18 @@ SmartCRM 是一套**深度AI融合**的客户关系管理系统，对标Salesfor
 │  │ Opportunity │ │ Email       │ │ AI Service          │  │
 │  │ Service     │ │ Service     │ │ (Java)              │  │
 │  └─────────────┘ └─────────────┘ └─────────────────────┘  │
+│  ┌─────────────────────┐ ┌─────────────────────────────┐  │
+│  │ Customer Scoring    │ │ Smart Followup             │  │
+│  │ Service             │ │ Service                    │  │
+│  └─────────────────────┘ └─────────────────────────────┘  │
+│  ┌─────────────────────┐ ┌─────────────────────────────┐  │
+│  │ Sales Forecast      │ │ Analytics                   │  │
+│  │ Service             │ │ Service                    │  │
+│  └─────────────────────┘ └─────────────────────────────┘  │
 ├─────────────────────────────────────────────────────────────┤
 │                    Java AI 服务层                            │
 │  (LeadScoring / EmailGen / DealPrediction / ConversationAI) │
+│  (CustomerScoring / SmartFollowup / SalesForecast)          │
 ├─────────────────────────────────────────────────────────────┤
 │                    DeepSeek API                            │
 └─────────────────────────────────────────────────────────────┘
@@ -59,9 +71,21 @@ SmartCRM/
 │   │       │   ├── DealPredictionService.java     # 成交预测
 │   │       │   ├── ConversationAnalysisService.java # 对话分析
 │   │       │   ├── IntelligentRoutingService.java  # 智能路由
+│   │       │   ├── CustomerScoringService.java     # 客户评分 (LV1-LV5)
+│   │       │   ├── SmartFollowupService.java      # 智能跟进提醒
+│   │       │   ├── SalesForecastService.java     # 销售预测
 │   │       │   └── LlmClientService.java          # LLM调用
 │   │       └── dto/                # 数据传输对象
 │   └── pom.xml
+│
+├── customer-scoring-service/       # 客户评分服务 ⭐
+│   └── src/main/java/             # LV1-LV5评分、流失风险预警
+│
+├── smart-followup-service/        # 智能跟进提醒服务 ⭐
+│   └── src/main/java/             # 自动生成任务、超时预警
+│
+├── sales-forecast-service/        # 销售预测服务 ⭐
+│   └── src/main/java/             # 月度预测、商机转化预测
 │
 ├── crm-service/                    # 客户管理服务
 ├── lead-service/                    # 线索管理服务
@@ -205,6 +229,92 @@ POST /api/v1/ai/deal/predict
 }
 ```
 
+### 客户评分服务 (LV1-LV5)
+
+```
+POST /api/v1/customer-scoring/score
+
+{
+  "customerId": "cust_789",
+  "totalRevenue": 500000,
+  "orderCount": 12,
+  "lastOrderDate": "2024-01-15",
+  "interactionScore": 85,
+  "supportTickets": 2,
+  "renewalLikelihood": 0.9
+}
+
+响应：
+{
+  "level": "LV3",
+  "score": 78,
+  "churnRisk": "medium",
+  "insights": ["复购频率高于均值", "支持请求较少"],
+  "recommendedActions": ["推送会员专属优惠", "安排季度业务回顾"]
+}
+```
+
+### 智能跟进提醒
+
+```
+POST /api/v1/smart-followup/tasks/generate
+
+{
+  "customerId": "cust_789",
+  "salesOwner": "user_001",
+  "recentActivities": ["签单", "产品培训"]
+}
+
+响应：
+{
+  "tasks": [
+    {
+      "id": "task_001",
+      "title": "发送产品使用指南",
+      "dueDate": "2024-02-01",
+      "priority": "high",
+      "reason": "完成产品培训后发送资料提升使用率"
+    },
+    {
+      "id": "task_002",
+      "title": "30天满意度回访",
+      "dueDate": "2024-02-15",
+      "priority": "medium",
+      "reason": "保持沟通，收集使用反馈"
+    }
+  ]
+}
+```
+
+### 销售预测
+
+```
+POST /api/v1/sales-forecast/monthly
+
+{
+  "region": "华东",
+  "salesTeam": "team_001",
+  "historicalMonths": 6,
+  "pipelineData": {
+    "qualified": 50,
+    "proposal": 30,
+    "negotiation": 20
+  }
+}
+
+响应：
+{
+  "predictedRevenue": 8500000,
+  "confidence": 0.85,
+  "growthRate": 0.15,
+  "conversion预测": {
+    "qualifiedToProposal": 0.4,
+    "proposalToClose": 0.35
+  },
+  "recommendedActions": ["加强华东区商机跟进", "提升提案转化率"]
+}
+```
+
 ## 🎯 AI销售流程
 
 ```
@@ -214,9 +324,11 @@ POST /api/v1/ai/deal/predict
     ↓
 [AI邮件助手] → 个性化邮件 → 自动发送
     ↓
-[跟进提醒] → AI判断最佳时机 → 销售跟进
+[客户评分] → LV1-LV5分级 → 流失预警
     ↓
-[商机培育] → AI分析意向 → 预测成交概率
+[智能跟进提醒] → AI生成任务 → 超时预警
+    ↓
+[销售预测] → 月度预测 → 商机转化预测
     ↓
 成交/流失预警
 ```
@@ -257,6 +369,24 @@ POST /api/v1/ai/deal/predict
 - AI洞察面板
 - 转化漏斗分析
 - 预测 vs 实际对比
+
+### 客户评分
+- LV1-LV5客户分级体系
+- 流失风险实时预警
+- 客户价值分析
+- 个性化运营建议
+
+### 智能跟进
+- AI自动生成跟进任务
+- 超时自动预警提醒
+- 任务优先级智能排序
+- 跟进记录自动归档
+
+### 销售预测
+- 月度/季度销售预测
+- 商机转化概率预测
+- 区域/团队业绩预测
+- 预测准确性持续优化
 
 ## 🤝 贡献
 
