@@ -1,0 +1,7 @@
+com/smartcrm/contract/client/ContractFeignClient.class
+com/smartcrm/contract/controller/ContractController.class
+com/smartcrm/contract/repository/ContractRepository.class
+com/smartcrm/contract/entity/Contract.class
+com/smartcrm/contract/ContractServiceApplication.class
+com/smartcrm/contract/service/ContractService.class
+com/smartcrm/contract/dto/ContractRequest.class

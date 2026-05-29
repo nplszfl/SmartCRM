@@ -31,6 +31,7 @@
         <module>customer-scoring-service</module>
         <module>smart-followup-service</module>
         <module>sales-forecast-service</module>
+        <module>contract-service</module>
     </modules>
 
     <properties>
