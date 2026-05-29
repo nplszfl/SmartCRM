@@ -1,5 +1,6 @@
 package com.smartcrm.crm.service;
 
+import com.smartcrm.crm.dto.AccountRequest;
 import com.smartcrm.crm.entity.Account;
 import com.smartcrm.crm.repository.AccountRepository;
 import com.smartcrm.common.exception.ResourceNotFoundException;
@@ -11,26 +12,53 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import java.util.List;
 
 /**
- * Account service implementation.
+ * Account service implementation with DTO-based request handling.
  */
 @Slf4j
 @Service
 public class AccountServiceImpl extends ServiceImpl<AccountRepository, Account> {
 
-    public Account createAccount(Account account) {
-        log.info("Creating account: {} for customer: {}", account.getAccountNumber(), account.getCustomerId());
+    public Account createAccount(AccountRequest request) {
+        log.info("Creating account: {} for customer: {}", request.getAccountNumber(), request.getCustomerId());
+        
+        Account account = new Account();
+        account.setAccountNumber(request.getAccountNumber());
+        account.setAccountName(request.getAccountName());
+        account.setAccountType(request.getAccountType());
+        account.setBalance(request.getBalance());
+        account.setCreditLimit(request.getCreditLimit());
+        account.setCurrency(request.getCurrency());
+        account.setPaymentTerms(request.getPaymentTerms());
+        account.setBillingAddress(request.getBillingAddress());
+        account.setShippingAddress(request.getShippingAddress());
+        account.setCustomerId(request.getCustomerId());
+        account.setOwnerId(request.getOwnerId());
         account.setStatus("ACTIVE");
+        
         this.save(account);
+        log.info("Account created with ID: {}", account.getId());
         return account;
     }
 
-    public Account updateAccount(Long id, Account account) {
+    public Account updateAccount(Long id, AccountRequest request) {
         Account existing = this.getById(id);
         if (existing == null) {
             throw new ResourceNotFoundException("Account", id);
         }
-        account.setId(id);
-        this.updateById(account);
+        
+        if (request.getAccountName() != null) existing.setAccountName(request.getAccountName());
+        if (request.getAccountType() != null) existing.setAccountType(request.getAccountType());
+        if (request.getBalance() != null) existing.setBalance(request.getBalance());
+        if (request.getCreditLimit() != null) existing.setCreditLimit(request.getCreditLimit());
+        if (request.getCurrency() != null) existing.setCurrency(request.getCurrency());
+        if (request.getPaymentTerms() != null) existing.setPaymentTerms(request.getPaymentTerms());
+        if (request.getBillingAddress() != null) existing.setBillingAddress(request.getBillingAddress());
+        if (request.getShippingAddress() != null) existing.setShippingAddress(request.getShippingAddress());
+        if (request.getStatus() != null) existing.setStatus(request.getStatus());
+        if (request.getOwnerId() != null) existing.setOwnerId(request.getOwnerId());
+        
+        this.updateById(existing);
+        log.info("Account {} updated", id);
         return this.getById(id);
     }
 
@@ -51,7 +79,7 @@ public class AccountServiceImpl extends ServiceImpl<AccountRepository, Account> 
     }
 
     public void deleteAccount(Long id) {
-        this.removeById(id);
+        baseMapper.deleteById(id);
     }
 
     public Account suspendAccount(Long id) {

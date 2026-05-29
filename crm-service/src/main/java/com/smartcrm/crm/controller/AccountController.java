@@ -1,6 +1,7 @@
 package com.smartcrm.crm.controller;
 
 import com.smartcrm.common.dto.ApiResponse;
+import com.smartcrm.crm.dto.AccountRequest;
 import com.smartcrm.crm.entity.Account;
 import com.smartcrm.crm.service.AccountServiceImpl;
 import lombok.extern.slf4j.Slf4j;
@@ -23,16 +24,16 @@ public class AccountController {
     }
 
     @PostMapping
-    public ApiResponse<Account> createAccount(@RequestBody Account account) {
-        log.info("REST request to create account: {}", account.getAccountNumber());
-        Account created = accountService.createAccount(account);
+    public ApiResponse<Account> createAccount(@RequestBody AccountRequest request) {
+        log.info("REST request to create account: {}", request.getAccountNumber());
+        Account created = accountService.createAccount(request);
         return ApiResponse.success(created);
     }
 
     @PutMapping("/{id}")
-    public ApiResponse<Account> updateAccount(@PathVariable Long id, @RequestBody Account account) {
+    public ApiResponse<Account> updateAccount(@PathVariable Long id, @RequestBody AccountRequest request) {
         log.info("REST request to update account: {}", id);
-        Account updated = accountService.updateAccount(id, account);
+        Account updated = accountService.updateAccount(id, request);
         return ApiResponse.success(updated);
     }
 

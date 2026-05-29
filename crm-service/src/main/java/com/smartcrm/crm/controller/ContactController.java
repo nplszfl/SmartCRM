@@ -2,6 +2,7 @@ package com.smartcrm.crm.controller;
 
 import com.smartcrm.common.dto.ApiResponse;
 import com.smartcrm.common.dto.PageResponse;
+import com.smartcrm.crm.dto.ContactRequest;
 import com.smartcrm.crm.entity.Contact;
 import com.smartcrm.crm.service.ContactServiceImpl;
 import lombok.extern.slf4j.Slf4j;
@@ -24,16 +25,16 @@ public class ContactController {
     }
 
     @PostMapping
-    public ApiResponse<Contact> createContact(@RequestBody Contact contact) {
-        log.info("REST request to create contact: {} {}", contact.getFirstName(), contact.getLastName());
-        Contact created = contactService.createContact(contact);
+    public ApiResponse<Contact> createContact(@RequestBody ContactRequest request) {
+        log.info("REST request to create contact: {} {}", request.getFirstName(), request.getLastName());
+        Contact created = contactService.createContact(request);
         return ApiResponse.success(created);
     }
 
     @PutMapping("/{id}")
-    public ApiResponse<Contact> updateContact(@PathVariable Long id, @RequestBody Contact contact) {
+    public ApiResponse<Contact> updateContact(@PathVariable Long id, @RequestBody ContactRequest request) {
         log.info("REST request to update contact: {}", id);
-        Contact updated = contactService.updateContact(id, contact);
+        Contact updated = contactService.updateContact(id, request);
         return ApiResponse.success(updated);
     }
 

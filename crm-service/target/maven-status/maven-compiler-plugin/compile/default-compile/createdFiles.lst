@@ -1,3 +1,4 @@
+com/smartcrm/crm/dto/ContactRequest.class
 com/smartcrm/crm/controller/TaskController.class
 com/smartcrm/crm/service/ActivityServiceImpl.class
 com/smartcrm/crm/controller/CustomerController.class
@@ -7,6 +8,7 @@ com/smartcrm/crm/entity/Contact.class
 com/smartcrm/crm/entity/Activity.class
 com/smartcrm/crm/repository/ContactRepository.class
 com/smartcrm/crm/service/TaskService.class
+com/smartcrm/crm/dto/AccountRequest.class
 com/smartcrm/crm/entity/Task.class
 com/smartcrm/crm/repository/CampaignRepository.class
 com/smartcrm/crm/repository/AccountRepository.class

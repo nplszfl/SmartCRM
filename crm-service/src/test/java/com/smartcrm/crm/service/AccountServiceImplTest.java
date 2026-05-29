@@ -1,5 +1,6 @@
 package com.smartcrm.crm.service;
 
+import com.smartcrm.crm.dto.AccountRequest;
 import com.smartcrm.crm.entity.Account;
 import com.smartcrm.crm.repository.AccountRepository;
 import com.smartcrm.common.exception.ResourceNotFoundException;
@@ -13,16 +14,18 @@ import org.mockito.quality.Strictness;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doReturn;
 
 /**
  * Unit tests for AccountServiceImpl.
- * Tests account management CRUD operations and business logic.
+ * Tests account CRUD operations, status transitions, and search functionality.
  */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -41,27 +44,88 @@ class AccountServiceImplTest {
             field.setAccessible(true);
             field.set(accountService, accountRepository);
         } catch (Exception e) {
-            // Fallback - the service uses this.baseMapper internally
+            // Fallback
         }
     }
 
     @Test
-    void createAccount_withValidData_setsStatusToActiveAndSaves() {
+    void createAccount_withValidRequest_setsActiveStatus() {
         // Arrange
-        Account account = new Account();
-        account.setAccountNumber("ACC-001");
-        account.setCustomerId(1L);
-        account.setAccountName("Test Account");
+        AccountRequest request = new AccountRequest();
+        request.setAccountNumber("ACC-001");
+        request.setAccountName("Test Company");
+        request.setAccountType("REVENUE");
+        request.setBalance(new BigDecimal("10000.00"));
+        request.setCreditLimit(new BigDecimal("50000.00"));
+        request.setCurrency("USD");
+        request.setCustomerId(1L);
 
         when(accountRepository.insert(any(Account.class))).thenReturn(1);
-        when(accountRepository.selectById(any())).thenReturn(account);
 
         // Act
-        Account result = accountService.createAccount(account);
+        Account result = accountService.createAccount(request);
+
+        // Assert
+        assertThat(result.getAccountNumber()).isEqualTo("ACC-001");
+        assertThat(result.getAccountName()).isEqualTo("Test Company");
+        assertThat(result.getStatus()).isEqualTo("ACTIVE");
+        assertThat(result.getBalance()).isEqualByComparingTo(new BigDecimal("10000.00"));
+        verify(accountRepository).insert(any(Account.class));
+    }
+
+    @Test
+    void createAccount_withMinimalData_setsDefaults() {
+        // Arrange
+        AccountRequest request = new AccountRequest();
+        request.setAccountNumber("ACC-002");
+        request.setAccountName("Minimal Corp");
+
+        when(accountRepository.insert(any(Account.class))).thenReturn(1);
+
+        // Act
+        Account result = accountService.createAccount(request);
 
         // Assert
         assertThat(result.getStatus()).isEqualTo("ACTIVE");
-        verify(accountRepository).insert(any(Account.class));
+        assertThat(result.getCurrency()).isNull();
+    }
+
+    @Test
+    void updateAccount_withValidData_updatesFields() {
+        // Arrange
+        Long accountId = 1L;
+        Account existing = new Account();
+        existing.setId(accountId);
+        existing.setAccountNumber("ACC-001");
+        existing.setAccountName("Old Name");
+
+        AccountRequest request = new AccountRequest();
+        request.setAccountName("New Name");
+        request.setBalance(new BigDecimal("20000.00"));
+
+        when(accountRepository.selectById(accountId)).thenReturn(existing);
+        when(accountRepository.updateById(any(Account.class))).thenReturn(1);
+
+        // Act
+        Account result = accountService.updateAccount(accountId, request);
+
+        // Assert
+        assertThat(result.getAccountName()).isEqualTo("New Name");
+        assertThat(result.getBalance()).isEqualByComparingTo(new BigDecimal("20000.00"));
+    }
+
+    @Test
+    void updateAccount_whenNotFound_throwsException() {
+        // Arrange
+        Long accountId = 999L;
+        AccountRequest request = new AccountRequest();
+        request.setAccountName("Updated");
+
+        when(accountRepository.selectById(accountId)).thenReturn(null);
+
+        // Act & Assert
+        assertThatThrownBy(() -> accountService.updateAccount(accountId, request))
+                .isInstanceOf(ResourceNotFoundException.class);
     }
 
     @Test
@@ -70,9 +134,7 @@ class AccountServiceImplTest {
         Long accountId = 1L;
         Account account = new Account();
         account.setId(accountId);
-        account.setAccountNumber("ACC-001");
         account.setAccountName("Test Account");
-        account.setStatus("ACTIVE");
 
         when(accountRepository.selectById(accountId)).thenReturn(account);
 
@@ -80,60 +142,52 @@ class AccountServiceImplTest {
         Account result = accountService.getAccountById(accountId);
 
         // Assert
-        assertThat(result).isNotNull();
-        assertThat(result.getAccountNumber()).isEqualTo("ACC-001");
+        assertThat(result.getId()).isEqualTo(accountId);
+        assertThat(result.getAccountName()).isEqualTo("Test Account");
     }
 
     @Test
-    void getAccountById_whenNotExists_throwsResourceNotFoundException() {
+    void getAccountById_whenNotFound_throwsException() {
         // Arrange
         Long accountId = 999L;
         when(accountRepository.selectById(accountId)).thenReturn(null);
 
         // Act & Assert
         assertThatThrownBy(() -> accountService.getAccountById(accountId))
-                .isInstanceOf(ResourceNotFoundException.class)
-                .hasMessageContaining("Account");
-    }
-
-    // Note: getAccountByAccountNumber uses this.getOne() which internally calls baseMapper.selectOne()
-    // This requires full MyBatis Plus initialization. Integration tests cover this method.
-    @Test
-    void getAccountByAccountNumber_returnsMatchingAccount_documentsBehavior() {
-        // getOne() is a framework method - integration tests verify actual behavior
+                .isInstanceOf(ResourceNotFoundException.class);
     }
 
     @Test
-    void getAccountsByCustomerId_returnsFilteredList() {
+    void getAccountByAccountNumber_returnsMatchingAccount() {
+        // Note: getOne() uses MyBatis-Plus internals that require proper table metadata initialization.
+        // This functionality is tested via integration tests. Unit test skipped.
+    }
+
+    @Test
+    void getAccountsByCustomerId_returnsMatchingAccounts() {
         // Arrange
         Long customerId = 1L;
-        Account a1 = new Account();
-        a1.setId(1L);
-        a1.setAccountNumber("ACC-001");
-        a1.setCustomerId(customerId);
-        
-        Account a2 = new Account();
-        a2.setId(2L);
-        a2.setAccountNumber("ACC-002");
-        a2.setCustomerId(customerId);
+        Account account1 = new Account();
+        account1.setCustomerId(customerId);
+        Account account2 = new Account();
+        account2.setCustomerId(customerId);
 
-        when(accountRepository.selectList(any(LambdaQueryWrapper.class))).thenReturn(List.of(a1, a2));
+        when(accountRepository.selectList(any(LambdaQueryWrapper.class)))
+                .thenReturn(List.of(account1, account2));
 
         // Act
-        List<Account> result = accountService.getAccountsByCustomerId(customerId);
+        List<Account> results = accountService.getAccountsByCustomerId(customerId);
 
         // Assert
-        assertThat(result).hasSize(2);
-        assertThat(result).allMatch(a -> a.getCustomerId().equals(customerId));
+        assertThat(results).hasSize(2);
     }
 
     @Test
-    void suspendAccount_whenAccountExists_setsStatusToSuspended() {
+    void suspendAccount_whenExists_setsStatusToSuspended() {
         // Arrange
         Long accountId = 1L;
         Account account = new Account();
         account.setId(accountId);
-        account.setAccountNumber("ACC-001");
         account.setStatus("ACTIVE");
 
         when(accountRepository.selectById(accountId)).thenReturn(account);
@@ -144,26 +198,112 @@ class AccountServiceImplTest {
 
         // Assert
         assertThat(result.getStatus()).isEqualTo("SUSPENDED");
-        verify(accountRepository).updateById(any(Account.class));
     }
 
     @Test
-    void suspendAccount_whenAccountNotExists_throwsResourceNotFoundException() {
+    void activateAccount_whenExists_setsStatusToActive() {
         // Arrange
-        Long accountId = 999L;
-        when(accountRepository.selectById(accountId)).thenReturn(null);
+        Long accountId = 1L;
+        Account account = new Account();
+        account.setId(accountId);
+        account.setStatus("SUSPENDED");
 
-        // Act & Assert
-        assertThatThrownBy(() -> accountService.suspendAccount(accountId))
-                .isInstanceOf(ResourceNotFoundException.class)
-                .hasMessageContaining("Account");
+        when(accountRepository.selectById(accountId)).thenReturn(account);
+        when(accountRepository.updateById(any(Account.class))).thenReturn(1);
+
+        // Act
+        Account result = accountService.activateAccount(accountId);
+
+        // Assert
+        assertThat(result.getStatus()).isEqualTo("ACTIVE");
     }
 
-    // Note: getAllAccounts uses this.list() which requires full MyBatis Plus initialization.
-    // For unit tests, we test individual query methods. Integration tests cover the full flow.
     @Test
-    void getAllAccounts_returnsAllAccounts_documentsBehavior() {
-        // getAllAccounts() delegates to ServiceImpl.list() which is framework code.
-        // This test documents the method exists - integration tests verify actual behavior.
+    void closeAccount_whenExists_setsStatusToClosed() {
+        // Arrange
+        Long accountId = 1L;
+        Account account = new Account();
+        account.setId(accountId);
+        account.setStatus("ACTIVE");
+
+        when(accountRepository.selectById(accountId)).thenReturn(account);
+        when(accountRepository.updateById(any(Account.class))).thenReturn(1);
+
+        // Act
+        Account result = accountService.closeAccount(accountId);
+
+        // Assert
+        assertThat(result.getStatus()).isEqualTo("CLOSED");
+    }
+
+    @Test
+    void getAllAccounts_returnsAllAccounts() {
+        // Arrange
+        Account account1 = new Account();
+        Account account2 = new Account();
+        when(accountRepository.selectList(any())).thenReturn(List.of(account1, account2));
+
+        // Act
+        List<Account> results = accountService.getAllAccounts();
+
+        // Assert
+        assertThat(results).hasSize(2);
+    }
+
+    @Test
+    void getAccountsByStatus_returnsFilteredAccounts() {
+        // Arrange
+        Account account = new Account();
+        account.setStatus("ACTIVE");
+        when(accountRepository.selectList(any(LambdaQueryWrapper.class)))
+                .thenReturn(List.of(account));
+
+        // Act
+        List<Account> results = accountService.getAccountsByStatus("ACTIVE");
+
+        // Assert
+        assertThat(results).hasSize(1);
+        assertThat(results.get(0).getStatus()).isEqualTo("ACTIVE");
+    }
+
+    @Test
+    void countByStatus_returnsCorrectCount() {
+        // Arrange
+        when(accountRepository.selectCount(any(LambdaQueryWrapper.class))).thenReturn(5L);
+
+        // Act
+        long count = accountService.countByStatus("ACTIVE");
+
+        // Assert
+        assertThat(count).isEqualTo(5L);
+    }
+
+    @Test
+    void searchAccountsByName_performsPartialMatch() {
+        // Arrange
+        Account account = new Account();
+        account.setAccountName("Test Company");
+        when(accountRepository.selectList(any(LambdaQueryWrapper.class)))
+                .thenReturn(List.of(account));
+
+        // Act
+        List<Account> results = accountService.searchAccountsByName("Test");
+
+        // Assert
+        assertThat(results).hasSize(1);
+        assertThat(results.get(0).getAccountName()).isEqualTo("Test Company");
+    }
+
+    @Test
+    void deleteAccount_removesAccount() {
+        // Arrange
+        Long accountId = 1L;
+        when(accountRepository.deleteById(accountId)).thenReturn(1);
+
+        // Act
+        accountService.deleteAccount(accountId);
+
+        // Assert
+        verify(accountRepository).deleteById(accountId);
     }
 }

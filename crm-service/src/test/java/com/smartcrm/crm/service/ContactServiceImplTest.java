@@ -2,6 +2,7 @@ package com.smartcrm.crm.service;
 
 import com.smartcrm.crm.entity.Contact;
 import com.smartcrm.crm.repository.ContactRepository;
+import com.smartcrm.crm.dto.ContactRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -49,17 +50,17 @@ class ContactServiceImplTest {
     @Test
     void createContact_withValidData_savesAndReturnsContact() {
         // Arrange
-        Contact contact = new Contact();
-        contact.setFirstName("John");
-        contact.setLastName("Doe");
-        contact.setEmail("john.doe@company.com");
-        contact.setPhone("1234567890");
-        contact.setCustomerId(1L);
+        ContactRequest request = new ContactRequest();
+        request.setFirstName("John");
+        request.setLastName("Doe");
+        request.setEmail("john.doe@company.com");
+        request.setPhone("1234567890");
+        request.setCustomerId(1L);
 
         when(contactRepository.insert(any(Contact.class))).thenReturn(1);
 
         // Act
-        Contact result = contactService.createContact(contact);
+        Contact result = contactService.createContact(request);
 
         // Assert
         assertThat(result.getFirstName()).isEqualTo("John");
