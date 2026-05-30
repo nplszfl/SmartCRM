@@ -3,7 +3,10 @@ package com.smartcrm.contract.service;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.smartcrm.common.exception.ResourceNotFoundException;
 import com.smartcrm.contract.dto.ContractRequest;
+import com.smartcrm.contract.dto.ContractResponse;
 import com.smartcrm.contract.entity.Contract;
+import com.smartcrm.contract.exception.ContractStatusException;
+import com.smartcrm.contract.exception.DuplicateContractNumberException;
 import com.smartcrm.contract.repository.ContractRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -13,6 +16,9 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Contract service - manages sales contracts
@@ -21,8 +27,25 @@ import java.util.List;
 @Service
 public class ContractService extends ServiceImpl<ContractRepository, Contract> {
 
+    private static final Set<String> VALID_TRANSITIONS = Set.of(
+            "DRAFT->PENDING", "DRAFT->ACTIVE", "DRAFT->CANCELLED",
+            "PENDING->ACTIVE", "PENDING->CANCELLED",
+            "ACTIVE->EXPIRED", "ACTIVE->TERMINATED",
+            "CANCELLED->DRAFT"
+    );
+
     public Contract createContract(ContractRequest request) {
         log.info("Creating contract: {}", request.getContractNumber());
+
+        // Check for duplicate contract number
+        Long existingCount = this.count(new LambdaQueryWrapper<Contract>()
+                .eq(Contract::getContractNumber, request.getContractNumber()));
+        if (existingCount > 0) {
+            throw new DuplicateContractNumberException(request.getContractNumber());
+        }
+
+        // Validate required fields
+        validateRequiredFields(request);
 
         Contract contract = new Contract();
         contract.setContractNumber(request.getContractNumber());
@@ -55,10 +78,32 @@ public class ContractService extends ServiceImpl<ContractRepository, Contract> {
         return contract;
     }
 
+    private void validateRequiredFields(ContractRequest request) {
+        if (request.getTotalAmount() == null || request.getTotalAmount().compareTo(BigDecimal.ZERO) < 0) {
+            throw new IllegalArgumentException("Total amount must be non-negative");
+        }
+        if (request.getTitle() == null || request.getTitle().trim().isEmpty()) {
+            throw new IllegalArgumentException("Contract title is required");
+        }
+        if (request.getContractNumber() == null || request.getContractNumber().trim().isEmpty()) {
+            throw new IllegalArgumentException("Contract number is required");
+        }
+    }
+
     public Contract updateContract(Long id, ContractRequest request) {
         Contract existing = this.getById(id);
         if (existing == null) {
             throw new ResourceNotFoundException("Contract", id);
+        }
+
+        // Check for duplicate contract number (excluding current contract)
+        if (request.getContractNumber() != null && !request.getContractNumber().equals(existing.getContractNumber())) {
+            Long count = this.count(new LambdaQueryWrapper<Contract>()
+                    .eq(Contract::getContractNumber, request.getContractNumber())
+                    .ne(Contract::getId, id));
+            if (count > 0) {
+                throw new DuplicateContractNumberException(request.getContractNumber());
+            }
         }
 
         existing.setContractNumber(request.getContractNumber());
@@ -233,5 +278,164 @@ public class ContractService extends ServiceImpl<ContractRepository, Contract> {
             return -1;
         }
         return ChronoUnit.DAYS.between(LocalDateTime.now(), contract.getExpirationDate());
+    }
+
+    /**
+     * Convert entity to response DTO
+     */
+    public ContractResponse toResponse(Contract contract) {
+        ContractResponse response = new ContractResponse();
+        response.setId(contract.getId());
+        response.setContractNumber(contract.getContractNumber());
+        response.setTitle(contract.getTitle());
+        response.setDescription(contract.getDescription());
+        response.setAccountId(contract.getAccountId());
+        response.setOpportunityId(contract.getOpportunityId());
+        response.setContactId(contract.getContactId());
+        response.setStatus(contract.getStatus());
+        response.setType(contract.getType());
+        response.setTotalAmount(contract.getTotalAmount());
+        response.setPaidAmount(contract.getPaidAmount());
+        response.setTaxAmount(contract.getTaxAmount());
+        response.setPaymentTerms(contract.getPaymentTerms());
+        response.setPaymentDueDate(contract.getPaymentDueDate());
+        response.setEffectiveDate(contract.getEffectiveDate());
+        response.setExpirationDate(contract.getExpirationDate());
+        response.setSignedDate(contract.getSignedDate());
+        response.setOwnerId(contract.getOwnerId());
+        response.setSignatureData(contract.getSignatureData());
+        response.setAiRiskScore(contract.getAiRiskScore());
+        response.setAiRiskConfidence(contract.getAiRiskConfidence());
+        response.setCreatedAt(contract.getCreatedAt());
+        response.setUpdatedAt(contract.getUpdatedAt());
+        // Calculate outstanding amount
+        if (contract.getTotalAmount() != null && contract.getPaidAmount() != null) {
+            response.setOutstandingAmount(contract.getTotalAmount().subtract(contract.getPaidAmount()));
+        }
+        return response;
+    }
+
+    /**
+     * Validate status transition
+     */
+    private void validateStatusTransition(String fromStatus, String toStatus) {
+        String transition = fromStatus + "->" + toStatus;
+        if (!VALID_TRANSITIONS.contains(transition)) {
+            throw new ContractStatusException(fromStatus, toStatus);
+        }
+    }
+
+    /**
+     * Renew an expired or terminated contract - creates a new contract based on the old one
+     */
+    public Contract renewContract(Long id, LocalDateTime newExpirationDate) {
+        Contract existing = this.getById(id);
+        if (existing == null) {
+            throw new ResourceNotFoundException("Contract", id);
+        }
+
+        // Only allow renewal from EXPIRED or TERMINATED status
+        if (!"EXPIRED".equals(existing.getStatus()) && !"TERMINATED".equals(existing.getStatus())) {
+            throw new ContractStatusException(existing.getStatus(), "DRAFT");
+        }
+
+        // Create a new contract based on the existing one
+        Contract renewed = new Contract();
+        renewed.setContractNumber(existing.getContractNumber() + "-R" + System.currentTimeMillis() % 10000);
+        renewed.setTitle(existing.getTitle() + " (Renewed)");
+        renewed.setDescription(existing.getDescription());
+        renewed.setAccountId(existing.getAccountId());
+        renewed.setOpportunityId(existing.getOpportunityId());
+        renewed.setContactId(existing.getContactId());
+        renewed.setStatus("DRAFT");
+        renewed.setType(existing.getType());
+        renewed.setTotalAmount(existing.getTotalAmount());
+        renewed.setPaidAmount(BigDecimal.ZERO);
+        renewed.setTaxAmount(existing.getTaxAmount());
+        renewed.setPaymentTerms(existing.getPaymentTerms());
+        renewed.setEffectiveDate(LocalDateTime.now());
+        renewed.setExpirationDate(newExpirationDate);
+        renewed.setOwnerId(existing.getOwnerId());
+        renewed.setCreatedAt(LocalDateTime.now());
+        renewed.setUpdatedAt(LocalDateTime.now());
+
+        this.save(renewed);
+        log.info("Contract {} renewed as new contract {}", id, renewed.getId());
+        return renewed;
+    }
+
+    /**
+     * Clone an existing contract as a new draft
+     */
+    public Contract cloneContract(Long id) {
+        Contract existing = this.getById(id);
+        if (existing == null) {
+            throw new ResourceNotFoundException("Contract", id);
+        }
+
+        Contract cloned = new Contract();
+        cloned.setContractNumber(existing.getContractNumber() + "-C" + System.currentTimeMillis() % 10000);
+        cloned.setTitle(existing.getTitle() + " (Copy)");
+        cloned.setDescription(existing.getDescription());
+        cloned.setAccountId(existing.getAccountId());
+        cloned.setOpportunityId(existing.getOpportunityId());
+        cloned.setContactId(existing.getContactId());
+        cloned.setStatus("DRAFT");
+        cloned.setType(existing.getType());
+        cloned.setTotalAmount(existing.getTotalAmount());
+        cloned.setPaidAmount(BigDecimal.ZERO);
+        cloned.setTaxAmount(existing.getTaxAmount());
+        cloned.setPaymentTerms(existing.getPaymentTerms());
+        cloned.setEffectiveDate(null);
+        cloned.setExpirationDate(null);
+        cloned.setOwnerId(existing.getOwnerId());
+        cloned.setCreatedAt(LocalDateTime.now());
+        cloned.setUpdatedAt(LocalDateTime.now());
+
+        this.save(cloned);
+        log.info("Contract {} cloned to new contract {}", id, cloned.getId());
+        return cloned;
+    }
+
+    /**
+     * Get contract statistics
+     */
+    public Map<String, Object> getContractStats() {
+        long total = this.count();
+        long draftCount = this.count(new LambdaQueryWrapper<Contract>().eq(Contract::getStatus, "DRAFT"));
+        long pendingCount = this.count(new LambdaQueryWrapper<Contract>().eq(Contract::getStatus, "PENDING"));
+        long activeCount = this.count(new LambdaQueryWrapper<Contract>().eq(Contract::getStatus, "ACTIVE"));
+        long expiredCount = this.count(new LambdaQueryWrapper<Contract>().eq(Contract::getStatus, "EXPIRED"));
+        long terminatedCount = this.count(new LambdaQueryWrapper<Contract>().eq(Contract::getStatus, "TERMINATED"));
+        long cancelledCount = this.count(new LambdaQueryWrapper<Contract>().eq(Contract::getStatus, "CANCELLED"));
+
+        BigDecimal totalValue = this.getTotalContractValue();
+        BigDecimal outstandingValue = this.getTotalOutstandingAmount();
+
+        return Map.of(
+                "totalContracts", total,
+                "draftCount", draftCount,
+                "pendingCount", pendingCount,
+                "activeCount", activeCount,
+                "expiredCount", expiredCount,
+                "terminatedCount", terminatedCount,
+                "cancelledCount", cancelledCount,
+                "totalValue", totalValue,
+                "outstandingValue", outstandingValue
+        );
+    }
+
+    /**
+     * Search contracts by keyword in title or description
+     */
+    public List<Contract> searchContracts(String keyword) {
+        if (keyword == null || keyword.trim().isEmpty()) {
+            return List.of();
+        }
+        String pattern = "%" + keyword.trim() + "%";
+        return this.list(new LambdaQueryWrapper<Contract>()
+                .like(Contract::getTitle, pattern)
+                .or()
+                .like(Contract::getDescription, pattern));
     }
 }

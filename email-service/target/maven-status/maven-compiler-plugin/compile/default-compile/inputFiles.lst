@@ -1,6 +1,13 @@
 /Users/huanghuixiang/smartcrm/email-service/src/main/java/com/smartcrm/email/repository/EmailRepository.java
+/Users/huanghuixiang/smartcrm/email-service/src/main/java/com/smartcrm/email/repository/EmailTemplateRepository.java
+/Users/huanghuixiang/smartcrm/email-service/src/main/java/com/smartcrm/email/dto/EmailResponse.java
+/Users/huanghuixiang/smartcrm/email-service/src/main/java/com/smartcrm/email/entity/EmailTemplate.java
+/Users/huanghuixiang/smartcrm/email-service/src/main/java/com/smartcrm/email/service/EmailTemplateService.java
+/Users/huanghuixiang/smartcrm/email-service/src/main/java/com/smartcrm/email/dto/EmailRequest.java
+/Users/huanghuixiang/smartcrm/email-service/src/main/java/com/smartcrm/email/controller/EmailTemplateController.java
 /Users/huanghuixiang/smartcrm/email-service/src/main/java/com/smartcrm/email/service/EmailService.java
 /Users/huanghuixiang/smartcrm/email-service/src/main/java/com/smartcrm/email/EmailServiceApplication.java
+/Users/huanghuixiang/smartcrm/email-service/src/main/java/com/smartcrm/email/dto/EmailTemplateRequest.java
 /Users/huanghuixiang/smartcrm/email-service/src/main/java/com/smartcrm/email/controller/EmailController.java
 /Users/huanghuixiang/smartcrm/email-service/src/main/java/com/smartcrm/email/entity/Email.java
-/Users/huanghuixiang/smartcrm/email-service/src/main/java/com/smartcrm/email/dto/EmailRequest.java
+/Users/huanghuixiang/smartcrm/email-service/src/main/java/com/smartcrm/email/dto/EmailTemplateResponse.java

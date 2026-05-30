@@ -53,7 +53,7 @@ public class EmailService extends ServiceImpl<EmailRepository, Email> {
             throw new ResourceNotFoundException("Email", id);
         }
         if (!"DRAFT".equals(email.getStatus())) {
-            throw new IllegalStateException("Only draft emails can be sent");
+            throw new IllegalStateException("Only draft emails can be sent. Current status: " + email.getStatus());
         }
 
         email.setStatus("SENT");
