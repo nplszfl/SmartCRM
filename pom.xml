@@ -32,6 +32,7 @@
         <module>smart-followup-service</module>
         <module>sales-forecast-service</module>
         <module>contract-service</module>
+        <module>quote-service</module>
     </modules>
 
     <properties>
