@@ -1,0 +1,40 @@
+server:
+  port: 8086
+  servlet:
+    context-path: /
+
+spring:
+  application:
+    name: analytics-service
+  profiles:
+    active: dev
+  cloud:
+    nacos:
+      discovery:
+        server-addr: ${NACOS_SERVER:127.0.0.1:8848}
+      config:
+        server-addr: ${NACOS_SERVER:127.0.0.1:8848}
+        file-extension: yaml
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: GMT+8
+
+# OpenFeign client settings — short timeouts so a degraded downstream
+# cannot stall the whole analytics dashboard.
+feign:
+  client:
+    config:
+      default:
+        connectTimeout: 3000
+        readTimeout: 5000
+        loggerLevel: basic
+  hystrix:
+    enabled: false
+
+logging:
+  level:
+    root: INFO
+    com.smartcrm.analytics: INFO
+    org.springframework.cloud.openfeign: WARN

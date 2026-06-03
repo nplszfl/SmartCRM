@@ -3,8 +3,11 @@ package com.smartcrm.analytics.service;
 import com.smartcrm.analytics.client.EmailFeignClient;
 import com.smartcrm.analytics.client.LeadFeignClient;
 import com.smartcrm.analytics.client.OpportunityFeignClient;
+import com.smartcrm.analytics.dto.FunnelReportDto;
 import com.smartcrm.analytics.dto.PerformanceReportDto;
+import com.smartcrm.analytics.dto.RankingEntryDto;
 import com.smartcrm.analytics.dto.SalesDashboardDto;
+import com.smartcrm.analytics.dto.TrendPointDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -15,6 +18,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Analytics Service - Provides comprehensive sales analytics and reporting
@@ -285,6 +289,201 @@ public class AnalyticsService {
         summary.put("dealsClosed", fetchDealsClosedByUser(userId));
         
         return summary;
+    }
+
+    // ==================== Business analytics: funnel, trend, ranking ====================
+
+    /**
+     * Build a sales-funnel report for the given period.
+     *
+     * <p>The funnel goes from {@code LEAD} (top) through {@code QUALIFIED_LEAD},
+     * {@code OPPORTUNITY}, {@code PROPOSAL}, {@code NEGOTIATION} down to
+     * {@code CLOSED_WON} (bottom). For each stage the report records:
+     * <ul>
+     *   <li>how many records entered the stage</li>
+     *   <li>the conversion rate from the previous stage</li>
+     *   <li>the conversion rate from the top of the funnel</li>
+     *   <li>the total monetary value of opportunities at the stage</li>
+     * </ul>
+     *
+     * <p>The method is defensive: if any of the downstream services fails
+     * the entire report is still returned (with zeros) so dashboards can
+     * still render rather than 500.
+     */
+    public FunnelReportDto getFunnelReport(LocalDateTime startDate, LocalDateTime endDate) {
+        log.info("Building sales funnel report from {} to {}", startDate, endDate);
+        FunnelReportDto funnel = new FunnelReportDto();
+        funnel.setPeriodStart(startDate);
+        funnel.setPeriodEnd(endDate);
+
+        try {
+            List<Map<String, Object>> leads = safeGetLeads();
+            List<Map<String, Object>> opps = safeGetOpportunities();
+
+            // Lead-side stages
+            long totalLeads = leads.size();
+            long qualifiedLeads = leads.stream()
+                    .filter(l -> isQualifiedLeadStatus(String.valueOf(l.getOrDefault("status", ""))))
+                    .count();
+
+            // Opportunity-side stages
+            Map<String, Long> oppStageCounts = new LinkedHashMap<>();
+            BigDecimal proposalAmount = BigDecimal.ZERO;
+            BigDecimal negotiationAmount = BigDecimal.ZERO;
+            BigDecimal wonAmount = BigDecimal.ZERO;
+            BigDecimal oppAmount = BigDecimal.ZERO;
+
+            for (Map<String, Object> o : opps) {
+                String stage = String.valueOf(o.getOrDefault("stage", ""));
+                BigDecimal amount = parseAmount(o.get("amount"));
+                oppStageCounts.merge(stage, 1L, Long::sum);
+                oppAmount = oppAmount.add(amount);
+                if ("PROPOSAL".equals(stage)) proposalAmount = proposalAmount.add(amount);
+                else if ("NEGOTIATION".equals(stage)) negotiationAmount = negotiationAmount.add(amount);
+                else if ("CLOSED_WON".equals(stage)) wonAmount = wonAmount.add(amount);
+            }
+
+            long totalOpps = opps.size();
+            long proposalCount = oppStageCounts.getOrDefault("PROPOSAL", 0L);
+            long negotiationCount = oppStageCounts.getOrDefault("NEGOTIATION", 0L);
+            long wonCount = oppStageCounts.getOrDefault("CLOSED_WON", 0L);
+
+            funnel.setTotalLeads(totalLeads);
+            funnel.setTotalOpportunities(totalOpps);
+            funnel.setWonDeals(wonCount);
+            funnel.setTotalWonRevenue(wonAmount);
+            funnel.setOverallConversionRate(percentage(wonCount, totalLeads));
+
+            // Build the ordered stage list.
+            List<FunnelReportDto.FunnelStage> stages = new ArrayList<>();
+            long top = Math.max(totalLeads, 1L);
+
+            stages.add(stage("LEAD", totalLeads, BigDecimal.ZERO, null, top));
+            stages.add(stage("QUALIFIED_LEAD", qualifiedLeads, BigDecimal.ZERO, totalLeads, top));
+            stages.add(stage("OPPORTUNITY", totalOpps, oppAmount, qualifiedLeads, top));
+            stages.add(stage("PROPOSAL", proposalCount, proposalAmount, totalOpps, top));
+            stages.add(stage("NEGOTIATION", negotiationCount, negotiationAmount, proposalCount, top));
+            stages.add(stage("CLOSED_WON", wonCount, wonAmount, negotiationCount, top));
+
+            funnel.setStages(stages);
+        } catch (Exception e) {
+            log.warn("Failed to build funnel report, returning empty result: {}", e.getMessage());
+            // Defensive defaults — every numeric metric must be non-null
+            funnel.setTotalLeads(0L);
+            funnel.setTotalOpportunities(0L);
+            funnel.setWonDeals(0L);
+            funnel.setTotalWonRevenue(BigDecimal.ZERO);
+            funnel.setOverallConversionRate(BigDecimal.ZERO);
+            funnel.setStages(new ArrayList<>());
+        }
+
+        return funnel;
+    }
+
+    /**
+     * Build a daily/monthly revenue trend series for the given period.
+     *
+     * <p>Won opportunities are bucketed by their {@code closedAt} date. The
+     * resulting series is dense — every day/month in the period is included,
+     * even if there were no wins (those entries will have value 0).
+     *
+     * @param granularity "DAY", "WEEK", or "MONTH"
+     */
+    public List<TrendPointDto> getRevenueTrend(LocalDateTime startDate, LocalDateTime endDate, String granularity) {
+        log.info("Building revenue trend from {} to {} ({})", startDate, endDate, granularity);
+        String bucket = granularity == null ? "DAY" : granularity.toUpperCase(Locale.ROOT);
+
+        try {
+            List<Map<String, Object>> opps = safeGetOpportunities();
+            // Build dense bucket list first
+            List<LocalDate> periods = buildPeriods(startDate.toLocalDate(), endDate.toLocalDate(), bucket);
+
+            Map<LocalDate, BigDecimal> revenueByPeriod = new HashMap<>();
+            Map<LocalDate, Long> countByPeriod = new HashMap<>();
+            for (LocalDate p : periods) {
+                revenueByPeriod.put(p, BigDecimal.ZERO);
+                countByPeriod.put(p, 0L);
+            }
+
+            for (Map<String, Object> o : opps) {
+                if (!"CLOSED_WON".equals(String.valueOf(o.getOrDefault("stage", "")))) continue;
+                LocalDate closed = extractDate(o.get("closedAt"));
+                if (closed == null) continue;
+                if (closed.isBefore(startDate.toLocalDate()) || closed.isAfter(endDate.toLocalDate())) continue;
+                LocalDate bucketKey = roundDown(closed, bucket);
+                revenueByPeriod.merge(bucketKey, parseAmount(o.get("amount")), BigDecimal::add);
+                countByPeriod.merge(bucketKey, 1L, Long::sum);
+            }
+
+            List<TrendPointDto> result = new ArrayList<>(periods.size());
+            for (LocalDate p : periods) {
+                TrendPointDto point = new TrendPointDto();
+                point.setPeriodStart(p);
+                point.setValue(revenueByPeriod.getOrDefault(p, BigDecimal.ZERO));
+                point.setCount(countByPeriod.getOrDefault(p, 0L));
+                result.add(point);
+            }
+            return result;
+        } catch (Exception e) {
+            log.warn("Failed to build revenue trend: {}", e.getMessage());
+            return new ArrayList<>();
+        }
+    }
+
+    /**
+     * Build a leaderboard of the top {@code limit} sales reps ranked by won
+     * revenue within the given period.
+     */
+    public List<RankingEntryDto> getTopPerformers(LocalDateTime startDate, LocalDateTime endDate, int limit) {
+        log.info("Building top-performers ranking from {} to {} (limit={})", startDate, endDate, limit);
+        if (limit <= 0) limit = 10;
+        try {
+            List<Map<String, Object>> opps = safeGetOpportunities();
+            Map<Long, RankingAccumulator> byUser = new HashMap<>();
+
+            for (Map<String, Object> o : opps) {
+                if (!"CLOSED_WON".equals(String.valueOf(o.getOrDefault("stage", "")))) continue;
+                LocalDate closed = extractDate(o.get("closedAt"));
+                if (closed == null) continue;
+                if (closed.isBefore(startDate.toLocalDate()) || closed.isAfter(endDate.toLocalDate())) continue;
+                Long owner = parseLong(o.get("ownerId"));
+                if (owner == null) continue;
+
+                RankingAccumulator acc = byUser.computeIfAbsent(owner, k -> new RankingAccumulator());
+                acc.userId = owner;
+                acc.userName = String.valueOf(o.getOrDefault("ownerName", "User-" + owner));
+                acc.wonCount++;
+                acc.wonRevenue = acc.wonRevenue.add(parseAmount(o.get("amount")));
+            }
+
+            // Cross-reference with opportunities for total deal count / win rate
+            for (Map<String, Object> o : opps) {
+                Long owner = parseLong(o.get("ownerId"));
+                if (owner == null) continue;
+                RankingAccumulator acc = byUser.get(owner);
+                if (acc == null) continue;
+                acc.totalDeals++;
+                String stage = String.valueOf(o.getOrDefault("stage", ""));
+                if ("CLOSED_LOST".equals(stage)) acc.lostCount++;
+            }
+
+            return byUser.values().stream()
+                    .sorted((a, b) -> b.wonRevenue.compareTo(a.wonRevenue))
+                    .limit(limit)
+                    .map(acc -> {
+                        RankingEntryDto entry = new RankingEntryDto();
+                        entry.setUserId(acc.userId);
+                        entry.setUserName(acc.userName);
+                        entry.setMetricValue(acc.wonRevenue);
+                        entry.setSecondaryMetric(percentage(acc.wonCount, acc.wonCount + acc.lostCount));
+                        entry.setContextCount(acc.totalDeals);
+                        return entry;
+                    })
+                    .collect(Collectors.toList());
+        } catch (Exception e) {
+            log.warn("Failed to build top-performers ranking: {}", e.getMessage());
+            return new ArrayList<>();
+        }
     }
 
     // ==================== Private helper methods ====================
@@ -677,5 +876,121 @@ public class AnalyticsService {
             log.trace("Failed to parse datetime: {}", dateObj);
         }
         return null;
+    }
+
+    // ==================== Helpers for the new analytics functions ====================
+
+    private List<Map<String, Object>> safeGetLeads() {
+        var response = leadClient.getAllLeads();
+        if (response == null || response.getData() == null) return List.of();
+        return response.getData();
+    }
+
+    private List<Map<String, Object>> safeGetOpportunities() {
+        var response = opportunityClient.getAllOpportunities();
+        if (response == null || response.getData() == null) return List.of();
+        return response.getData();
+    }
+
+    private boolean isQualifiedLeadStatus(String status) {
+        return "QUALIFIED".equals(status)
+                || "QUALIFIED_LEAD".equals(status)
+                || "CONVERTED".equals(status);
+    }
+
+    private BigDecimal parseAmount(Object raw) {
+        if (raw == null) return BigDecimal.ZERO;
+        try {
+            if (raw instanceof BigDecimal bd) return bd;
+            if (raw instanceof Number n) return new BigDecimal(n.toString());
+            String s = String.valueOf(raw).trim();
+            if (s.isEmpty()) return BigDecimal.ZERO;
+            return new BigDecimal(s);
+        } catch (Exception e) {
+            return BigDecimal.ZERO;
+        }
+    }
+
+    private Long parseLong(Object raw) {
+        if (raw == null) return null;
+        if (raw instanceof Number n) return n.longValue();
+        try {
+            String s = String.valueOf(raw).trim();
+            if (s.isEmpty()) return null;
+            return Long.parseLong(s);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private LocalDate extractDate(Object raw) {
+        if (raw == null) return null;
+        if (raw instanceof LocalDate ld) return ld;
+        if (raw instanceof LocalDateTime ldt) return ldt.toLocalDate();
+        if (raw instanceof java.util.Date d) return d.toInstant().atZone(java.time.ZoneId.systemDefault()).toLocalDate();
+        if (raw instanceof String s && !s.isBlank()) {
+            try {
+                if (s.length() >= 10 && s.contains("T")) {
+                    return LocalDateTime.parse(s.substring(0, 19)).toLocalDate();
+                }
+                return LocalDate.parse(s.substring(0, 10));
+            } catch (Exception ignored) { }
+        }
+        return null;
+    }
+
+    private BigDecimal percentage(long numerator, long denominator) {
+        if (denominator <= 0) return BigDecimal.ZERO;
+        return BigDecimal.valueOf(numerator)
+                .divide(BigDecimal.valueOf(denominator), 4, RoundingMode.HALF_UP)
+                .multiply(BigDecimal.valueOf(100))
+                .setScale(2, RoundingMode.HALF_UP);
+    }
+
+    private FunnelReportDto.FunnelStage stage(String name, long count, BigDecimal amount,
+                                              Long previousCount, long topCount) {
+        FunnelReportDto.FunnelStage s = new FunnelReportDto.FunnelStage();
+        s.setStage(name);
+        s.setCount(count);
+        s.setTotalAmount(amount);
+        s.setConversionFromPrevious(previousCount == null ? null : percentage(count, previousCount));
+        s.setConversionFromTop(percentage(count, topCount));
+        return s;
+    }
+
+    /** Build dense list of period start dates between {@code start} and {@code end} inclusive. */
+    private List<LocalDate> buildPeriods(LocalDate start, LocalDate end, String granularity) {
+        List<LocalDate> out = new ArrayList<>();
+        if (start == null || end == null || start.isAfter(end)) return out;
+        LocalDate cursor = roundDown(start, granularity);
+        while (!cursor.isAfter(end)) {
+            out.add(cursor);
+            cursor = switch (granularity) {
+                case "WEEK" -> cursor.plusWeeks(1);
+                case "MONTH" -> cursor.plusMonths(1);
+                default -> cursor.plusDays(1);
+            };
+            // Safety net — guard against pathological huge ranges
+            if (out.size() > 5000) break;
+        }
+        return out;
+    }
+
+    private LocalDate roundDown(LocalDate date, String granularity) {
+        return switch (granularity) {
+            case "WEEK" -> date.minusDays((long) date.getDayOfWeek().getValue() - 1);
+            case "MONTH" -> date.withDayOfMonth(1);
+            default -> date;
+        };
+    }
+
+    /** Mutable accumulator used by {@link #getTopPerformers}. */
+    private static class RankingAccumulator {
+        Long userId;
+        String userName;
+        long wonCount;
+        long lostCount;
+        long totalDeals;
+        BigDecimal wonRevenue = BigDecimal.ZERO;
     }
 }
